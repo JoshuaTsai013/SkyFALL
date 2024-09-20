@@ -75,13 +75,13 @@ public class PlayerInputs : MonoBehaviour
 	{
 		sprint = newSprintState;
 	}
-	public void AimInput(bool newSprintState)
+	public void AimInput(bool newAimState)
 	{
-		aim = newSprintState;
+		aim = newAimState;
 	}
-	public void ShootInput(bool newSprintState)
+	public void ShootInput(bool newShootState)
 	{
-		shoot = newSprintState;
+		shoot = newShootState;
 	}
 
 

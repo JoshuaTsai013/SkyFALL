@@ -1,5 +1,5 @@
 {
-    "name": "StarterAssets",
+    "name": "Player",
     "maps": [
         {
             "name": "Player",
@@ -52,7 +52,7 @@
                 },
                 {
                     "name": "Shoot",
-                    "type": "Button",
+                    "type": "PassThrough",
                     "id": "d2bdf0b5-fcdf-4968-9159-40d24e302eff",
                     "expectedControlType": "Button",
                     "processors": "",
