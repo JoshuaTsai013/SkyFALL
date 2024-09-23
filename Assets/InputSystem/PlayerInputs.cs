@@ -12,7 +12,6 @@ public class PlayerInputs : MonoBehaviour
 	public Vector2 look;
 	public bool jump;
 	public bool sprint;
-
 	public bool aim;
 	public bool shoot;
 

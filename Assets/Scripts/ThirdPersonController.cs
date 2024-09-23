@@ -28,11 +28,14 @@ public class ThirdPersonController : MonoBehaviour
     public float Gravity = -15.0f;
 
     [Space(10)]
+    [Tooltip("Time required to ready before jump. Set to 0f to instantly jump")]
+    public float JumpDelayTimeout = 0.50f;
+
     [Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
     public float JumpTimeout = 0.50f;
 
     [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
-    public float FallTimeout = 0.15f;
+    public float FallTimeout = 0;
 
     [Header("Player Grounded")]
     [Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
@@ -72,10 +75,12 @@ public class ThirdPersonController : MonoBehaviour
     private float _animationBlend;
     private float _targetRotation = 0.0f;
     private float _rotationVelocity;
+    [SerializeField]
     private float _verticalVelocity;
-    private float _terminalVelocity = 53.0f;
+    private readonly float _terminalVelocity = 53.0f;
 
     // timeout deltatime
+    private float _jumpDelayTimeoutDelta;
     private float _jumpTimeoutDelta;
     private float _fallTimeoutDelta;
 
@@ -115,6 +120,7 @@ public class ThirdPersonController : MonoBehaviour
         _playerInput = GetComponent<PlayerInput>();
 
         // reset our timeouts on start
+        _jumpDelayTimeoutDelta = JumpDelayTimeout;
         _jumpTimeoutDelta = JumpTimeout;
         _fallTimeoutDelta = FallTimeout;
     }
@@ -237,6 +243,7 @@ public class ThirdPersonController : MonoBehaviour
         {
             // reset the fall timeout timer
             _fallTimeoutDelta = FallTimeout;
+            
 
             // update animator if using character
                 _animator.SetBool("Jump", false);
@@ -249,25 +256,33 @@ public class ThirdPersonController : MonoBehaviour
             }
 
             // Jump
-            if (_input.jump && _jumpTimeoutDelta <= 0.0f)
+            if (_input.jump)
+            {
+                _jumpDelayTimeoutDelta -= Time.deltaTime;
+            }
+            if (_input.jump && _jumpDelayTimeoutDelta <= 0.0f)
             {
                 // the square root of H * -2 * G = how much velocity needed to reach desired height
-                _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
+                //_verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
+                _verticalVelocity = 20f;
 
                 // update animator if using character
-                    _animator.SetBool("Jump", true);
+                _animator.SetBool("Jump", true);
+                _input.jump = false;
+                _jumpDelayTimeoutDelta = JumpDelayTimeout;
             }
 
             // jump timeout
-            if (_jumpTimeoutDelta >= 0.0f)
-            {
-                _jumpTimeoutDelta -= Time.deltaTime;
-            }
+            // if (_jumpTimeoutDelta >= 0.0f)
+            // {
+            //     _jumpTimeoutDelta -= Time.deltaTime;
+            // }
+            
         }
         else
         {
             // reset the jump timeout timer
-            _jumpTimeoutDelta = JumpTimeout;
+            //_jumpTimeoutDelta = JumpTimeout;
 
             // fall timeout
             if (_fallTimeoutDelta >= 0.0f)
@@ -281,10 +296,15 @@ public class ThirdPersonController : MonoBehaviour
             }
 
             // if we are not grounded, do not jump
-            _input.jump = false;
+            //_input.jump = false;
         }
 
         // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
+        // if (_input.jump == false)
+        // {
+        //     _verticalVelocity += Gravity * Time.deltaTime;
+        // }
+
         if (_verticalVelocity < _terminalVelocity)
         {
             _verticalVelocity += Gravity * Time.deltaTime;
