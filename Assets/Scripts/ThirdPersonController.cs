@@ -10,9 +10,19 @@ public class ThirdPersonController : MonoBehaviour
     [Tooltip("Move speed of the character in m/s")]
     public float MoveSpeed = 2.0f;
 
-    [Tooltip("Sprint speed of the character in m/s")]
-    public float SprintSpeed = 5.335f;
+    [Space(10)]
 
+    public bool isSprint = false;
+    [Tooltip("Sprint speed of the character in m/s")]
+    public float SprintSpeed = 12.335f;
+
+    [Tooltip("Time required to pass before being able to sprint again. Set to 0f to instantly sprint again")]
+    public float SprintTimeout = 0.4f;
+
+    [Tooltip("How long a Sprint Performed")]
+    public float SprintDuration = 0.2f;
+
+    [Space(10)]
     [Tooltip("How fast the character turns to face movement direction")]
     [Range(0.0f, 0.2f)]
     public float RotationSmoothTime = 0.15f;
@@ -29,7 +39,7 @@ public class ThirdPersonController : MonoBehaviour
 
     [Space(10)]
     [Tooltip("Time required to ready before jump. Set to 0f to instantly jump")]
-    public float JumpDelayTimeout = 0.50f;
+    public float JumpDelayTimeout = 0.20f;
 
     [Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
     public float JumpTimeout = 0.50f;
@@ -80,14 +90,21 @@ public class ThirdPersonController : MonoBehaviour
     private readonly float _terminalVelocity = 53.0f;
 
     // timeout deltatime
+    [SerializeField]
+    private float _SprintTimeoutDelta;
+    [SerializeField]
+    private float _SprintDurationDelta;
+    [SerializeField]
     private float _jumpDelayTimeoutDelta;
+    [SerializeField]
     private float _jumpTimeoutDelta;
     private float _fallTimeoutDelta;
 
     private PlayerInput _playerInput;
     public Animator _animator;
     private CharacterController _controller;
-    private PlayerInputs _input;
+
+    private PlayerInputs _input;  //Created by me
     private GameObject _mainCamera;
 
     private const float _threshold = 0.01f;
@@ -123,12 +140,15 @@ public class ThirdPersonController : MonoBehaviour
         _jumpDelayTimeoutDelta = JumpDelayTimeout;
         _jumpTimeoutDelta = JumpTimeout;
         _fallTimeoutDelta = FallTimeout;
+        _SprintTimeoutDelta = SprintTimeout;
+        _SprintDurationDelta = SprintDuration;
     }
 
     private void Update()
     {
         JumpAndGravity();
         GroundedCheck();
+        Sprint();
         Move();
     }
 
@@ -137,7 +157,7 @@ public class ThirdPersonController : MonoBehaviour
         CameraRotation();
     }
 
- 
+
 
     private void GroundedCheck()
     {
@@ -148,7 +168,7 @@ public class ThirdPersonController : MonoBehaviour
             QueryTriggerInteraction.Ignore);
 
         // update animator if using character
-            _animator.SetBool("Grounded", Grounded);
+        _animator.SetBool("Grounded", Grounded);
     }
 
     private void CameraRotation()
@@ -175,13 +195,13 @@ public class ThirdPersonController : MonoBehaviour
     private void Move()
     {
         // set target speed based on move speed, sprint speed and if sprint is pressed
-        float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
+        float targetSpeed = isSprint ? SprintSpeed : MoveSpeed;
 
         // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
 
         // note: Vector2's == operator uses approximation so is not floating point error prone, and is cheaper than magnitude
         // if there is no input, set the target speed to 0
-        if (_input.move == Vector2.zero) targetSpeed = 0.0f;
+        if (_input.move == Vector2.zero && isSprint == false) targetSpeed = 0.0f;
 
         // a reference to the players current horizontal velocity
         float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
@@ -214,7 +234,7 @@ public class ThirdPersonController : MonoBehaviour
 
         // note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
         // if there is a move input rotate player when the player is moving
-        if (_input.move != Vector2.zero)
+        if (_input.move != Vector2.zero && isSprint == false)
         {
             _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
                               _mainCamera.transform.eulerAngles.y;
@@ -233,21 +253,48 @@ public class ThirdPersonController : MonoBehaviour
                          new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 
         // update animator if using character
-            _animator.SetFloat("Speed", _animationBlend);
-            _animator.SetFloat("MotionSpeed", inputMagnitude);
+        _animator.SetFloat("Speed", _animationBlend);
+        _animator.SetFloat("MotionSpeed", inputMagnitude);
     }
 
+
+
+    private void Sprint()
+    {
+        if (_input.sprint && _SprintTimeoutDelta <= 0.0f)
+        {
+            isSprint = true;
+            _SprintTimeoutDelta = SprintTimeout;
+        }
+
+        if (isSprint)
+        {
+            _SprintDurationDelta -= Time.deltaTime;
+            if (_SprintDurationDelta <= 0.0f)
+            {
+
+                _SprintDurationDelta = SprintDuration;
+                _input.sprint = false;
+                isSprint = false;
+            }
+        }
+
+        if (_SprintTimeoutDelta >= 0.0f)
+        {
+            _SprintTimeoutDelta -= Time.deltaTime;
+        }
+    }
     private void JumpAndGravity()
     {
         if (Grounded)
         {
             // reset the fall timeout timer
             _fallTimeoutDelta = FallTimeout;
-            
+
 
             // update animator if using character
-                _animator.SetBool("Jump", false);
-                _animator.SetBool("FreeFall", false);
+            _animator.SetBool("Jump", false);
+            _animator.SetBool("FreeFall", false);
 
             // stop our velocity dropping infinitely when grounded
             if (_verticalVelocity < 0.0f)
@@ -256,11 +303,11 @@ public class ThirdPersonController : MonoBehaviour
             }
 
             // Jump
-            if (_input.jump)
+            if (_input.jump == true && _jumpTimeoutDelta <= 0.0f)
             {
                 _jumpDelayTimeoutDelta -= Time.deltaTime;
             }
-            if (_input.jump && _jumpDelayTimeoutDelta <= 0.0f)
+            if (_jumpDelayTimeoutDelta <= 0.0f)
             {
                 // the square root of H * -2 * G = how much velocity needed to reach desired height
                 //_verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
@@ -270,14 +317,16 @@ public class ThirdPersonController : MonoBehaviour
                 _animator.SetBool("Jump", true);
                 _input.jump = false;
                 _jumpDelayTimeoutDelta = JumpDelayTimeout;
+                _jumpTimeoutDelta = JumpTimeout;
             }
 
             // jump timeout
-            // if (_jumpTimeoutDelta >= 0.0f)
-            // {
-            //     _jumpTimeoutDelta -= Time.deltaTime;
-            // }
-            
+            if (_jumpTimeoutDelta >= 0.0f)
+            {
+                _jumpTimeoutDelta -= Time.deltaTime;
+                _input.jump = false;
+            }
+
         }
         else
         {
@@ -292,7 +341,7 @@ public class ThirdPersonController : MonoBehaviour
             else
             {
                 // update animator if using character
-                    _animator.SetBool("FreeFall", true);
+                _animator.SetBool("FreeFall", true);
             }
 
             // if we are not grounded, do not jump
@@ -305,6 +354,7 @@ public class ThirdPersonController : MonoBehaviour
         //     _verticalVelocity += Gravity * Time.deltaTime;
         // }
 
+        // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
         if (_verticalVelocity < _terminalVelocity)
         {
             _verticalVelocity += Gravity * Time.deltaTime;

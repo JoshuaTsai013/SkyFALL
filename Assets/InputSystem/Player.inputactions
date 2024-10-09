@@ -241,7 +241,7 @@
                     "name": "",
                     "id": "c4e572ca-8018-4bdd-9d8e-6f471e7437ce",
                     "path": "<Mouse>/rightButton",
-                    "interactions": "",
+                    "interactions": "Hold(duration=1.401298E-45,pressPoint=1.401298E-45)",
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "Aim",
