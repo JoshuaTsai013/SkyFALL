@@ -11,7 +11,7 @@ public class PlayerInputs : MonoBehaviour
     public Vector2 move;
     public Vector2 look;
     public bool jump;
-    public bool sprint;
+    public bool Dash;
     public bool aim;
     public bool shoot;
 
@@ -41,9 +41,9 @@ public class PlayerInputs : MonoBehaviour
     // 	JumpInput(value.isPressed);
     // }
 
-    // public void OnSprint(InputValue value)
+    // public void OnDash(InputValue value)
     // {
-    // 	SprintInput(value.isPressed);
+    // 	DashInput(value.isPressed);
     // }
     // public void OnAim(InputValue value)
     // {
@@ -58,7 +58,7 @@ public class PlayerInputs : MonoBehaviour
     public void MoveInput(InputAction.CallbackContext ctx)
     {
         move = ctx.ReadValue<Vector2>();
-        //print(move);
+        print(move);
     }
 
     public void LookInput(InputAction.CallbackContext ctx)
@@ -75,15 +75,15 @@ public class PlayerInputs : MonoBehaviour
         
         print("Jumpppp"+jump);
     }
-    public void SprintInput(InputAction.CallbackContext ctx)
+    public void DashInput(InputAction.CallbackContext ctx)
     {
-        //sprint = ctx.ReadValue<bool>();
+        //Dash = ctx.ReadValue<bool>();
         if (ctx.performed)
         {
-            sprint = true;
+            Dash = true;
         }
         
-        print("Sprintttt"+sprint);
+        print("Dashttt"+Dash);
     }
     public void AimInput(InputAction.CallbackContext ctx)
     {

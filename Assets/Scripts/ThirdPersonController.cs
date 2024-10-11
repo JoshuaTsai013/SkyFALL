@@ -7,60 +7,62 @@ using UnityEngine.InputSystem;
 public class ThirdPersonController : MonoBehaviour
 {
     [Header("Player")]
+    [Space(5)]
+
     [Tooltip("Move speed of the character in m/s")]
     public float MoveSpeed = 2.0f;
-
-    [Space(10)]
-
-    public bool isSprint = false;
-    [Tooltip("Sprint speed of the character in m/s")]
-    public float SprintSpeed = 12.335f;
-
-    [Tooltip("Time required to pass before being able to sprint again. Set to 0f to instantly sprint again")]
-    public float SprintTimeout = 0.4f;
-
-    [Tooltip("How long a Sprint Performed")]
-    public float SprintDuration = 0.2f;
-
-    [Space(10)]
-    [Tooltip("How fast the character turns to face movement direction")]
-    [Range(0.0f, 0.2f)]
-    public float RotationSmoothTime = 0.15f;
-
+    [Tooltip("Move speed of the character in m/s")]
+    public float MoveSpeedOnGround = 7.0f;
+    [Tooltip("Move speed of the character in m/s")]
+    public float MoveSpeedOnAir = 4.0f;
+    [Tooltip("How fast the character turns to face movement direction on ground")]
+    public float RotationSmoothTimeOnGround = 0.15f;
+    [Tooltip("How fast the character turns to face movement direction on Air")]
+    public float RotationSmoothTimeOnAir = 0.8f;
     [Tooltip("Acceleration and deceleration")]
     public float SpeedChangeRate = 10.0f;
 
-    [Space(10)]
-    [Tooltip("The height the player can jump")]
-    public float JumpHeight = 1.2f;
+    [Header("Dash")]
+    [Space(5)]
+
+    [Tooltip("Player started Dash")]
+    public bool isDash = false;
+    [Tooltip("Dash speed of the character in m/s")]
+    public float DashSpeed = 12.335f;
+    [Tooltip("Time required to pass before being able to Dash again. Set to 0f to instantly Dash again")]
+    public float DashTimeout = 0.4f;
+    [Tooltip("How long a Dash Performed")]
+    public float DashDuration = 0.2f;
+
+    [Header("Jump")]
+    [Space(5)]
 
     [Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
     public float Gravity = -15.0f;
-
-    [Space(10)]
+    [Tooltip("The height the player can jump")]
+    public float JumpHeight = 1.2f;
     [Tooltip("Time required to ready before jump. Set to 0f to instantly jump")]
     public float JumpDelayTimeout = 0.20f;
-
     [Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
     public float JumpTimeout = 0.50f;
-
     [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
     public float FallTimeout = 0;
 
     [Header("Player Grounded")]
+    [Space(5)]
+
     [Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
     public bool Grounded = true;
-
     [Tooltip("Useful for rough ground")]
     public float GroundedOffset = -0.14f;
-
     [Tooltip("The radius of the grounded check. Should match the radius of the CharacterController")]
     public float GroundedRadius = 0.28f;
-
     [Tooltip("What layers the character uses as ground")]
     public LayerMask GroundLayers;
 
     [Header("Cinemachine")]
+    [Space(5)]
+
     [Tooltip("The follow target set in the Cinemachine Virtual Camera that the camera will follow")]
     public GameObject CinemachineCameraTarget;
 
@@ -82,21 +84,18 @@ public class ThirdPersonController : MonoBehaviour
 
     // player
     private float _speed;
+    private Vector3 inputDirection;
     private float _animationBlend;
     private float _targetRotation = 0.0f;
+    private float _rotationSmoothTime = 0.15f;
     private float _rotationVelocity;
-    [SerializeField]
     private float _verticalVelocity;
     private readonly float _terminalVelocity = 53.0f;
 
     // timeout deltatime
-    [SerializeField]
-    private float _SprintTimeoutDelta;
-    [SerializeField]
-    private float _SprintDurationDelta;
-    [SerializeField]
+    private float _DashTimeoutDelta;
+    private float _DashDurationDelta;
     private float _jumpDelayTimeoutDelta;
-    [SerializeField]
     private float _jumpTimeoutDelta;
     private float _fallTimeoutDelta;
 
@@ -106,9 +105,7 @@ public class ThirdPersonController : MonoBehaviour
 
     private PlayerInputs _input;  //Created by me
     private GameObject _mainCamera;
-
     private const float _threshold = 0.01f;
-
     private bool IsCurrentDeviceMouse
     {
         get
@@ -116,7 +113,6 @@ public class ThirdPersonController : MonoBehaviour
             return _playerInput.currentControlScheme == "KeyboardMouse";
         }
     }
-
 
     private void Awake()
     {
@@ -140,15 +136,15 @@ public class ThirdPersonController : MonoBehaviour
         _jumpDelayTimeoutDelta = JumpDelayTimeout;
         _jumpTimeoutDelta = JumpTimeout;
         _fallTimeoutDelta = FallTimeout;
-        _SprintTimeoutDelta = SprintTimeout;
-        _SprintDurationDelta = SprintDuration;
+        _DashTimeoutDelta = DashTimeout;
+        _DashDurationDelta = DashDuration;
     }
 
     private void Update()
     {
-        JumpAndGravity();
         GroundedCheck();
-        Sprint();
+        JumpAndGravity();
+        Dash();
         Move();
     }
 
@@ -156,8 +152,6 @@ public class ThirdPersonController : MonoBehaviour
     {
         CameraRotation();
     }
-
-
 
     private void GroundedCheck()
     {
@@ -167,6 +161,14 @@ public class ThirdPersonController : MonoBehaviour
         Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers,
             QueryTriggerInteraction.Ignore);
 
+        if (Grounded || isDash)
+        {
+            MoveSpeed = MoveSpeedOnGround;
+        }
+        else
+        {
+            MoveSpeed = MoveSpeedOnAir;
+        }
         // update animator if using character
         _animator.SetBool("Grounded", Grounded);
     }
@@ -194,104 +196,124 @@ public class ThirdPersonController : MonoBehaviour
 
     private void Move()
     {
-        // set target speed based on move speed, sprint speed and if sprint is pressed
-        float targetSpeed = isSprint ? SprintSpeed : MoveSpeed;
-
-        // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
-
-        // note: Vector2's == operator uses approximation so is not floating point error prone, and is cheaper than magnitude
-        // if there is no input, set the target speed to 0
-        if (_input.move == Vector2.zero && isSprint == false) targetSpeed = 0.0f;
-
         // a reference to the players current horizontal velocity
         float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
 
         float speedOffset = 0.1f;
         float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
-
-        // accelerate or decelerate to target speed
-        if (currentHorizontalSpeed < targetSpeed - speedOffset ||
-            currentHorizontalSpeed > targetSpeed + speedOffset)
+        //act according to isDash state
+        if (isDash != true)
         {
-            // creates curved result rather than a linear one giving a more organic speed change
-            // note T in Lerp is clamped, so we don't need to clamp our speed
-            _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude,
-                Time.deltaTime * SpeedChangeRate);
+            float targetSpeed = MoveSpeed;
 
-            // round speed to 3 decimal places
-            _speed = Mathf.Round(_speed * 1000f) / 1000f;
+            // if there is no input, set the target speed to 0
+            if (_input.move == Vector2.zero) targetSpeed = 0.0f;
+
+            // accelerate or decelerate to target speed
+            if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
+            {
+                // creates curved result rather than a linear one giving a more organic speed change
+                // note T in Lerp is clamped, so we don't need to clamp our speed
+                _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude,
+                    Time.deltaTime * SpeedChangeRate);
+                // round speed to 3 decimal places
+                _speed = Mathf.Round(_speed * 1000f) / 1000f;
+            }
+            else
+            {
+                _speed = targetSpeed;
+            }
+
+            _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
+            if (_animationBlend < 0.01f) _animationBlend = 0f;
+
+            // normalise input direction
+            inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
+
+            // if there is a move input rotate player when the player is moving
+            if (_input.move != Vector2.zero)
+            {
+                _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
+                                  _mainCamera.transform.eulerAngles.y;
+                float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity,
+                    _rotationSmoothTime);
+
+                // rotate to face input direction relative to camera position
+                transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+            }
+
+            Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
+
+            // move the player
+            _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+
         }
         else
         {
-            _speed = targetSpeed;
+            float targetSpeed = DashSpeed;
+
+            // accelerate or decelerate to target speed
+            if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
+            {
+                // creates curved result rather than a linear one giving a more organic speed change
+                // note T in Lerp is clamped, so we don't need to clamp our speed
+                _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude,
+                    Time.deltaTime * SpeedChangeRate);
+                // round speed to 3 decimal places
+                _speed = Mathf.Round(_speed * 1000f) / 1000f;
+            }
+            else
+            {
+                _speed = targetSpeed;
+            }
+
+            _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
+            if (_animationBlend < 0.01f) _animationBlend = 0f;
+
+            _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
+            Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
+
+            // move the player
+            _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+
         }
-
-        _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
-        if (_animationBlend < 0.01f) _animationBlend = 0f;
-
-        // normalise input direction
-        Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
-
-        // note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
-        // if there is a move input rotate player when the player is moving
-        if (_input.move != Vector2.zero && isSprint == false)
-        {
-            _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
-                              _mainCamera.transform.eulerAngles.y;
-            float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity,
-                RotationSmoothTime);
-
-            // rotate to face input direction relative to camera position
-            transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
-        }
-
-
-        Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
-
-        // move the player
-        _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
-                         new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
-
         // update animator if using character
         _animator.SetFloat("Speed", _animationBlend);
         _animator.SetFloat("MotionSpeed", inputMagnitude);
     }
-
-
-
-    private void Sprint()
+    private void Dash()
     {
-        if (_input.sprint && _SprintTimeoutDelta <= 0.0f)
+        if (_input.Dash && (_DashTimeoutDelta <= 0.0f) && (_input.move != Vector2.zero))
         {
-            isSprint = true;
-            _SprintTimeoutDelta = SprintTimeout;
+            isDash = true;
+            _DashTimeoutDelta = DashTimeout;
         }
 
-        if (isSprint)
+        if (isDash)
         {
-            _SprintDurationDelta -= Time.deltaTime;
-            if (_SprintDurationDelta <= 0.0f)
+            _DashDurationDelta -= Time.deltaTime;
+            if (_DashDurationDelta <= 0.0f)
             {
-
-                _SprintDurationDelta = SprintDuration;
-                _input.sprint = false;
-                isSprint = false;
+                _DashDurationDelta = DashDuration;
+                _input.Dash = false;
+                isDash = false;
             }
         }
 
-        if (_SprintTimeoutDelta >= 0.0f)
+        if (_DashTimeoutDelta >= 0.0f)
         {
-            _SprintTimeoutDelta -= Time.deltaTime;
+            _DashTimeoutDelta -= Time.deltaTime;
         }
     }
     private void JumpAndGravity()
     {
         if (Grounded)
         {
+            //reset the Rotation speed on ground
+            _rotationSmoothTime = RotationSmoothTimeOnGround;
             // reset the fall timeout timer
             _fallTimeoutDelta = FallTimeout;
-
-
+            
             // update animator if using character
             _animator.SetBool("Jump", false);
             _animator.SetBool("FreeFall", false);
@@ -309,8 +331,6 @@ public class ThirdPersonController : MonoBehaviour
             }
             if (_jumpDelayTimeoutDelta <= 0.0f)
             {
-                // the square root of H * -2 * G = how much velocity needed to reach desired height
-                //_verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
                 _verticalVelocity = 20f;
 
                 // update animator if using character
@@ -326,12 +346,11 @@ public class ThirdPersonController : MonoBehaviour
                 _jumpTimeoutDelta -= Time.deltaTime;
                 _input.jump = false;
             }
-
         }
         else
         {
-            // reset the jump timeout timer
-            //_jumpTimeoutDelta = JumpTimeout;
+            //set the Rotation speed on ground
+            _rotationSmoothTime = RotationSmoothTimeOnAir;
 
             // fall timeout
             if (_fallTimeoutDelta >= 0.0f)
@@ -343,31 +362,19 @@ public class ThirdPersonController : MonoBehaviour
                 // update animator if using character
                 _animator.SetBool("FreeFall", true);
             }
-
-            // if we are not grounded, do not jump
-            //_input.jump = false;
         }
 
-        // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
-        // if (_input.jump == false)
-        // {
-        //     _verticalVelocity += Gravity * Time.deltaTime;
-        // }
-
-        // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
         if (_verticalVelocity < _terminalVelocity)
         {
             _verticalVelocity += Gravity * Time.deltaTime;
         }
     }
-
     private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
     {
         if (lfAngle < -360f) lfAngle += 360f;
         if (lfAngle > 360f) lfAngle -= 360f;
         return Mathf.Clamp(lfAngle, lfMin, lfMax);
     }
-
     private void OnDrawGizmosSelected()
     {
         Color transparentGreen = new(0.0f, 1.0f, 0.0f, 0.35f);
@@ -381,5 +388,4 @@ public class ThirdPersonController : MonoBehaviour
             new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z),
             GroundedRadius);
     }
-
 }
