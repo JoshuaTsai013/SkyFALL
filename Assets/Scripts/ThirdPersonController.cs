@@ -85,6 +85,8 @@ public class ThirdPersonController : MonoBehaviour
     // player
     private float _speed;
     private Vector3 inputDirection;
+    private Vector3 inputDirectionLastTime;
+    private Vector3 targetDirection;
     private float _animationBlend;
     private float _targetRotation = 0.0f;
     private float _rotationSmoothTime = 0.15f;
@@ -142,10 +144,19 @@ public class ThirdPersonController : MonoBehaviour
 
     private void Update()
     {
-        GroundedCheck();
-        JumpAndGravity();
+        //GroundedCheck();
+        //JumpAndGravity();
         Dash();
         Move();
+    }
+
+    private void FixedUpdate()
+    {
+        GroundedCheck();
+        JumpAndGravity();
+        //Dash();
+        //Move();
+        //CameraRotation();
     }
 
     private void LateUpdate()
@@ -201,13 +212,21 @@ public class ThirdPersonController : MonoBehaviour
 
         float speedOffset = 0.1f;
         float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
+        //store input direction last time
+        //new Vector2 = _input.move;
+
+
         //act according to isDash state
         if (isDash != true)
         {
             float targetSpeed = MoveSpeed;
 
             // if there is no input, set the target speed to 0
-            if (_input.move == Vector2.zero) targetSpeed = 0.0f;
+            if (_input.move == Vector2.zero)
+            {
+                targetSpeed = 0.0f;
+                //print("Player stop");
+            }
 
             // accelerate or decelerate to target speed
             if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
@@ -242,7 +261,7 @@ public class ThirdPersonController : MonoBehaviour
                 transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
 
-            Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
+            targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
             // move the player
             _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
@@ -271,7 +290,7 @@ public class ThirdPersonController : MonoBehaviour
             if (_animationBlend < 0.01f) _animationBlend = 0f;
 
             _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
-            Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
+            targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
             // move the player
             _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
@@ -283,11 +302,47 @@ public class ThirdPersonController : MonoBehaviour
     }
     private void Dash()
     {
+        // if (_input.Dash && (_DashTimeoutDelta <= 0.0f) && (_input.move != Vector2.zero))
+        // {
+        //     isDash = true;
+        //     _DashTimeoutDelta = DashTimeout;
+        // }
+        // if (inputDirection != Vector3.zero)
+        // {
+        //     inputDirectionLastTime = inputDirection;
+        // }
+
         if (_input.Dash && (_DashTimeoutDelta <= 0.0f) && (_input.move != Vector2.zero))
         {
             isDash = true;
+            //check angle between player input and character facing
+            //inputDirection 
+            //targetDirection
+
+            //Vector3 vectoraaa = new();
+
+            Vector3 vectorinputXZ = new(inputDirection.x, 0, inputDirection.z);
+            Quaternion cameraLookRotation = Quaternion.LookRotation(_mainCamera.transform.forward);
+            Vector3 result = cameraLookRotation*vectorinputXZ;
+            //Vector3 vectorcameraXZ = new(_mainCamera.transform.forward.x , 0, transform.eulerAngles.z );
+            float angle = Vector3.Angle(result, transform.forward);
+            
+            Debug.Log("輸入角度:" + vectorinputXZ);
+            Debug.Log("角色面向角度:" + transform.forward);
+            Debug.Log("相機角度:" + _mainCamera.transform.forward);
+            //Debug.Log("_targetRotation: " + _targetRotation);
+            Debug.Log("XZ 平面上的夾角是: " + angle + " 度");
+            //Debug.Log("XZ 平面上的夾角是: " + angle + " 度");
+
+            print("Player Dash");
+            _input.Dash = false;
             _DashTimeoutDelta = DashTimeout;
         }
+        else
+        {
+            _input.Dash = false;
+        }
+
 
         if (isDash)
         {
@@ -313,7 +368,7 @@ public class ThirdPersonController : MonoBehaviour
             _rotationSmoothTime = RotationSmoothTimeOnGround;
             // reset the fall timeout timer
             _fallTimeoutDelta = FallTimeout;
-            
+
             // update animator if using character
             _animator.SetBool("Jump", false);
             _animator.SetBool("FreeFall", false);
@@ -325,7 +380,7 @@ public class ThirdPersonController : MonoBehaviour
             }
 
             // Jump
-            if (_input.jump == true && _jumpTimeoutDelta <= 0.0f)
+            if ((_input.jump == true) && (_jumpTimeoutDelta <= 0.0f) && (isDash == false))
             {
                 _jumpDelayTimeoutDelta -= Time.deltaTime;
             }
