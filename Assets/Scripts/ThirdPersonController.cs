@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
@@ -154,10 +155,14 @@ public class ThirdPersonController : MonoBehaviour
     {
         GroundedCheck();
         JumpAndGravity();
+        CheckDirection();
         //Dash();
         //Move();
         //CameraRotation();
     }
+
+
+
 
     private void LateUpdate()
     {
@@ -300,6 +305,11 @@ public class ThirdPersonController : MonoBehaviour
         _animator.SetFloat("Speed", _animationBlend);
         _animator.SetFloat("MotionSpeed", inputMagnitude);
     }
+    private void CheckDirection()
+    {
+        _animator.SetFloat("X", inputDirection.x);
+        _animator.SetFloat("Y", inputDirection.z);
+    }
     private void Dash()
     {
         // if (_input.Dash && (_DashTimeoutDelta <= 0.0f) && (_input.move != Vector2.zero))
@@ -323,10 +333,10 @@ public class ThirdPersonController : MonoBehaviour
 
             Vector3 vectorinputXZ = new(inputDirection.x, 0, inputDirection.z);
             Quaternion cameraLookRotation = Quaternion.LookRotation(_mainCamera.transform.forward);
-            Vector3 result = cameraLookRotation*vectorinputXZ;
+            Vector3 result = cameraLookRotation * vectorinputXZ;
             //Vector3 vectorcameraXZ = new(_mainCamera.transform.forward.x , 0, transform.eulerAngles.z );
             float angle = Vector3.Angle(result, transform.forward);
-            
+
             Debug.Log("輸入角度:" + vectorinputXZ);
             Debug.Log("角色面向角度:" + transform.forward);
             Debug.Log("相機角度:" + _mainCamera.transform.forward);
