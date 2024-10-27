@@ -3,8 +3,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
-
 [RequireComponent(typeof(PlayerInput))]
+
+[RequireComponent(typeof(PlayerInputs))]
 public class ThirdPersonController : MonoBehaviour
 {
     [Header("Player")]
@@ -20,6 +21,8 @@ public class ThirdPersonController : MonoBehaviour
     public float RotationSmoothTimeOnGround = 0.15f;
     [Tooltip("How fast the character turns to face movement direction on Air")]
     public float RotationSmoothTimeOnAir = 0.8f;
+    [Tooltip("How fast the character turns to face movement direction on Aim")]
+    public float RotationSmoothTimeOnAim = 0.15f;
     [Tooltip("Acceleration and deceleration")]
     public float SpeedChangeRate = 10.0f;
 
@@ -85,11 +88,12 @@ public class ThirdPersonController : MonoBehaviour
 
     // player
     private float _speed;
-    private Vector3 inputDirection;
-    private Vector3 inputDirectionLastTime;
-    private Vector3 targetDirection;
+    private Vector3 _inputDirection;
+    //private Vector3 inputDirectionLastTime;
+    private Vector3 _targetDirection;
     private float _animationBlend;
     private float _targetRotation = 0.0f;
+    [SerializeField]
     private float _rotationSmoothTime = 0.15f;
     private float _rotationVelocity;
     private float _verticalVelocity;
@@ -108,6 +112,7 @@ public class ThirdPersonController : MonoBehaviour
 
     private PlayerInputs _input;  //Created by me
     private GameObject _mainCamera;
+    private ThirdPersonShooterController _thirdPersonShooterController;
     private const float _threshold = 0.01f;
     private bool IsCurrentDeviceMouse
     {
@@ -134,7 +139,10 @@ public class ThirdPersonController : MonoBehaviour
         _input = GetComponent<PlayerInputs>();
 
         _playerInput = GetComponent<PlayerInput>();
+        _thirdPersonShooterController = GetComponent<ThirdPersonShooterController>();
 
+
+        _rotationSmoothTime = RotationSmoothTimeOnGround;
         // reset our timeouts on start
         _jumpDelayTimeoutDelta = JumpDelayTimeout;
         _jumpTimeoutDelta = JumpTimeout;
@@ -214,137 +222,119 @@ public class ThirdPersonController : MonoBehaviour
     {
         // a reference to the players current horizontal velocity
         float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
-
+        float targetSpeed = MoveSpeed;
         float speedOffset = 0.1f;
         float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
-        //store input direction last time
-        //new Vector2 = _input.move;
+        _inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
 
-
-        //act according to isDash state
-        if (isDash != true)
+        //act according to states
+        if (isDash != true && _thirdPersonShooterController.isAiming != true)
         {
-            float targetSpeed = MoveSpeed;
-
             // if there is no input, set the target speed to 0
-            if (_input.move == Vector2.zero)
-            {
-                targetSpeed = 0.0f;
-                //print("Player stop");
-            }
+            if (_input.move == Vector2.zero) { targetSpeed = 0.0f; }
 
             // accelerate or decelerate to target speed
             if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
             {
                 // creates curved result rather than a linear one giving a more organic speed change
-                // note T in Lerp is clamped, so we don't need to clamp our speed
-                _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude,
-                    Time.deltaTime * SpeedChangeRate);
+                _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude, Time.deltaTime * SpeedChangeRate);
                 // round speed to 3 decimal places
                 _speed = Mathf.Round(_speed * 1000f) / 1000f;
             }
             else
-            {
-                _speed = targetSpeed;
-            }
-
-            _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
-            if (_animationBlend < 0.01f) _animationBlend = 0f;
+            { _speed = targetSpeed; }
 
             // normalise input direction
-            inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
+
 
             // if there is a move input rotate player when the player is moving
             if (_input.move != Vector2.zero)
             {
-                _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
-                                  _mainCamera.transform.eulerAngles.y;
+                _targetRotation = Mathf.Atan2(_inputDirection.x, _inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
                 float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity,
                     _rotationSmoothTime);
 
                 // rotate to face input direction relative to camera position
                 transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
-
-            targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
-
-            // move the player
-            _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
-
+            _targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
         }
-        else
+        else if (isDash == true)
         {
-            float targetSpeed = DashSpeed;
+            targetSpeed = DashSpeed;
 
             // accelerate or decelerate to target speed
             if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
             {
                 // creates curved result rather than a linear one giving a more organic speed change
-                // note T in Lerp is clamped, so we don't need to clamp our speed
-                _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude,
-                    Time.deltaTime * SpeedChangeRate);
+                _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude, Time.deltaTime * SpeedChangeRate);
                 // round speed to 3 decimal places
                 _speed = Mathf.Round(_speed * 1000f) / 1000f;
             }
             else
-            {
-                _speed = targetSpeed;
-            }
+            { _speed = targetSpeed; }
 
-            _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
-            if (_animationBlend < 0.01f) _animationBlend = 0f;
-
-            _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
-            targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
-
-            // move the player
-            _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+            _targetRotation = Mathf.Atan2(_inputDirection.x, _inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
+            _targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
         }
+        else
+        {
+            // accelerate or decelerate to target speed
+            if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
+            {
+                // creates curved result rather than a linear one giving a more organic speed change
+                _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude, Time.deltaTime * SpeedChangeRate);
+                // round speed to 3 decimal places
+                _speed = Mathf.Round(_speed * 1000f) / 1000f;
+            }
+            else
+            { _speed = targetSpeed; }
+
+
+            // rotate to face camera rotation
+            float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _mainCamera.transform.eulerAngles.y, ref _rotationVelocity, RotationSmoothTimeOnAim);
+            transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+
+            _targetRotation = Mathf.Atan2(_inputDirection.x, _inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
+            _targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
+
+        }
+        _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
+        if (_animationBlend < 0.01f) _animationBlend = 0f;
+
+        // move the player
+        _controller.Move(_targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+
         // update animator if using character
         _animator.SetFloat("Speed", _animationBlend);
         _animator.SetFloat("MotionSpeed", inputMagnitude);
     }
     private void CheckDirection()
     {
-        _animator.SetFloat("X", inputDirection.x);
-        _animator.SetFloat("Y", inputDirection.z);
+        _animator.SetFloat("X", _inputDirection.x);
+        _animator.SetFloat("Y", _inputDirection.z);
     }
     private void Dash()
     {
-        // if (_input.Dash && (_DashTimeoutDelta <= 0.0f) && (_input.move != Vector2.zero))
-        // {
-        //     isDash = true;
-        //     _DashTimeoutDelta = DashTimeout;
-        // }
-        // if (inputDirection != Vector3.zero)
-        // {
-        //     inputDirectionLastTime = inputDirection;
-        // }
 
         if (_input.Dash && (_DashTimeoutDelta <= 0.0f) && (_input.move != Vector2.zero))
         {
             isDash = true;
+
             //check angle between player input and character facing
-            //inputDirection 
-            //targetDirection
-
-            //Vector3 vectoraaa = new();
-
-            Vector3 vectorinputXZ = new(inputDirection.x, 0, inputDirection.z);
+            Vector3 vectorinputXZ = new(_inputDirection.x, 0, _inputDirection.z);
             Quaternion cameraLookRotation = Quaternion.LookRotation(_mainCamera.transform.forward);
             Vector3 result = cameraLookRotation * vectorinputXZ;
-            //Vector3 vectorcameraXZ = new(_mainCamera.transform.forward.x , 0, transform.eulerAngles.z );
+
             float angle = Vector3.Angle(result, transform.forward);
 
-            Debug.Log("輸入角度:" + vectorinputXZ);
-            Debug.Log("角色面向角度:" + transform.forward);
-            Debug.Log("相機角度:" + _mainCamera.transform.forward);
-            //Debug.Log("_targetRotation: " + _targetRotation);
-            Debug.Log("XZ 平面上的夾角是: " + angle + " 度");
-            //Debug.Log("XZ 平面上的夾角是: " + angle + " 度");
+            // Debug.Log("輸入角度:" + vectorinputXZ);
+            // Debug.Log("角色面向角度:" + transform.forward);
+            // Debug.Log("相機角度:" + _mainCamera.transform.forward);
 
-            print("Player Dash");
+            Debug.Log("Player Dashed 夾角是: " + angle + " 度");
+
             _input.Dash = false;
             _DashTimeoutDelta = DashTimeout;
         }
@@ -353,7 +343,7 @@ public class ThirdPersonController : MonoBehaviour
             _input.Dash = false;
         }
 
-
+        //Timeout Dash
         if (isDash)
         {
             _DashDurationDelta -= Time.deltaTime;
@@ -414,7 +404,7 @@ public class ThirdPersonController : MonoBehaviour
         }
         else
         {
-            //set the Rotation speed on ground
+            //set the Rotation speed on Air
             _rotationSmoothTime = RotationSmoothTimeOnAir;
 
             // fall timeout
