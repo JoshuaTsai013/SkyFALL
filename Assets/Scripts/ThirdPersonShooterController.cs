@@ -7,6 +7,8 @@ public class ThirdPersonShooterController : MonoBehaviour
     public GameObject shootCam;
     public GameObject cross;
 
+    public Animator _animator;
+
     public bool isAiming;
 
     private PlayerInputs Inputs;
@@ -24,12 +26,14 @@ public class ThirdPersonShooterController : MonoBehaviour
             isAiming = true;
             shootCam.SetActive(true);
             cross.SetActive(true);
+            _animator.SetBool("Aim", true);
         }
         else
         {
             isAiming = false;
             shootCam.SetActive(false);
             cross.SetActive(false);
+            _animator.SetBool("Aim", false);
         }
     }
 }

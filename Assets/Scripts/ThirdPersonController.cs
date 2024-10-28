@@ -4,7 +4,6 @@ using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerInput))]
-
 [RequireComponent(typeof(PlayerInputs))]
 public class ThirdPersonController : MonoBehaviour
 {
@@ -312,8 +311,10 @@ public class ThirdPersonController : MonoBehaviour
     }
     private void CheckDirection()
     {
-        _animator.SetFloat("X", _inputDirection.x);
-        _animator.SetFloat("Y", _inputDirection.z);
+        float smoothX = Mathf.Lerp(_animator.GetFloat("X"), _inputDirection.x, Time.deltaTime * SpeedChangeRate);
+        float smoothZ = Mathf.Lerp(_animator.GetFloat("Z"), _inputDirection.z, Time.deltaTime * SpeedChangeRate);
+        _animator.SetFloat("X", smoothX);
+        _animator.SetFloat("Z", smoothZ);
     }
     private void Dash()
     {
@@ -321,7 +322,7 @@ public class ThirdPersonController : MonoBehaviour
         if (_input.Dash && (_DashTimeoutDelta <= 0.0f) && (_input.move != Vector2.zero))
         {
             isDash = true;
-
+            _animator.SetBool("Dash", true);
             //check angle between player input and character facing
             Vector3 vectorinputXZ = new(_inputDirection.x, 0, _inputDirection.z);
             Quaternion cameraLookRotation = Quaternion.LookRotation(_mainCamera.transform.forward);
@@ -341,6 +342,8 @@ public class ThirdPersonController : MonoBehaviour
         else
         {
             _input.Dash = false;
+
+
         }
 
         //Timeout Dash
@@ -352,6 +355,7 @@ public class ThirdPersonController : MonoBehaviour
                 _DashDurationDelta = DashDuration;
                 _input.Dash = false;
                 isDash = false;
+                _animator.SetBool("Dash", false);
             }
         }
 
