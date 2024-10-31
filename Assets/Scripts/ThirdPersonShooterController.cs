@@ -12,6 +12,8 @@ public class ThirdPersonShooterController : MonoBehaviour
     public bool isAiming;
 
     private PlayerInputs Inputs;
+    [SerializeField]
+    private Gun gun;
     // Start is called before the first frame update
     void Start()
     {
@@ -35,5 +37,11 @@ public class ThirdPersonShooterController : MonoBehaviour
             cross.SetActive(false);
             _animator.SetBool("Aim", false);
         }
+        if (Inputs.shoot)
+        {
+            gun.Shoot();
+        }
+
+
     }
 }
