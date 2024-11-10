@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.VFX;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerInput))]
@@ -39,6 +40,11 @@ public class ThirdPersonController : MonoBehaviour
 
     [Header("Jump")]
     [Space(5)]
+    public VisualEffect JumpEffect1;
+    public VisualEffect JumpEffect2;
+    public VisualEffect JumpEffect3;
+    public VisualEffect JumpEffect4;
+
 
     [Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
     public float Gravity = -15.0f;
@@ -347,7 +353,7 @@ public class ThirdPersonController : MonoBehaviour
     //         _targetRotation = Mathf.Atan2(_inputDirection.x, _inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
     //         _targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
-        
+
     //     _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
     //     if (_animationBlend < 0.01f) _animationBlend = 0f;
 
@@ -372,6 +378,8 @@ public class ThirdPersonController : MonoBehaviour
         {
             isDash = true;
             _animator.SetBool("Dash", true);
+            JumpEffect3.Play();
+            JumpEffect4.Play();
             //check angle between player input and character facing
             Vector3 vectorinputXZ = new(_inputDirection.x, 0, _inputDirection.z);
             Quaternion cameraLookRotation = Quaternion.LookRotation(_mainCamera.transform.forward);
@@ -392,7 +400,6 @@ public class ThirdPersonController : MonoBehaviour
         {
             _input.Dash = false;
 
-
         }
 
         //Timeout Dash
@@ -405,6 +412,8 @@ public class ThirdPersonController : MonoBehaviour
                 _input.Dash = false;
                 isDash = false;
                 _animator.SetBool("Dash", false);
+                JumpEffect3.Stop();
+                JumpEffect4.Stop();
             }
         }
 
@@ -423,8 +432,13 @@ public class ThirdPersonController : MonoBehaviour
             _fallTimeoutDelta = FallTimeout;
 
             // update animator if using character
-            _animator.SetBool("Jump", false);
-            _animator.SetBool("FreeFall", false);
+
+            
+                _animator.SetBool("Jump", false);
+                _animator.SetBool("FreeFall", false);
+                JumpEffect1.Stop();
+                JumpEffect2.Stop();
+            
 
             // stop our velocity dropping infinitely when grounded
             if (_verticalVelocity < 0.0f)
@@ -443,6 +457,8 @@ public class ThirdPersonController : MonoBehaviour
 
                 // update animator if using character
                 _animator.SetBool("Jump", true);
+                JumpEffect1.Play();
+                JumpEffect2.Play();
                 _input.jump = false;
                 _jumpDelayTimeoutDelta = JumpDelayTimeout;
                 _jumpTimeoutDelta = JumpTimeout;

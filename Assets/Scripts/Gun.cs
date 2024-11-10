@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.VFX;
 
 public class Gun : MonoBehaviour
 {
@@ -7,7 +8,7 @@ public class Gun : MonoBehaviour
     private Transform _center;
 
     [SerializeField]
-    private ParticleSystem ShootingSystem;
+    private VisualEffect ShootingSystem;
     [SerializeField]
     private Transform BulletSpawnPoint;
     [SerializeField]
@@ -36,7 +37,7 @@ public class Gun : MonoBehaviour
 
             ShootingSystem.Play();
 
-            Vector3 direction = _center.forward;
+            Vector3 direction = transform.forward;
             TrailRenderer trail = Instantiate(BulletTrail, BulletSpawnPoint.position, Quaternion.identity);
 
             if (Physics.Raycast(BulletSpawnPoint.position, direction, out RaycastHit hit, float.MaxValue, Mask))
