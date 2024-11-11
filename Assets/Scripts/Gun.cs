@@ -10,6 +10,8 @@ public class Gun : MonoBehaviour
     [SerializeField]
     private VisualEffect ShootingSystem;
     [SerializeField]
+    private Transform CameraPosition;
+    [SerializeField]
     private Transform BulletSpawnPoint;
     [SerializeField]
     private ParticleSystem ImpactParticleSystem;
@@ -40,14 +42,14 @@ public class Gun : MonoBehaviour
             Vector3 direction = transform.forward;
             TrailRenderer trail = Instantiate(BulletTrail, BulletSpawnPoint.position, Quaternion.identity);
 
-            if (Physics.Raycast(BulletSpawnPoint.position, direction, out RaycastHit hit, float.MaxValue, Mask))
+            if (Physics.Raycast(CameraPosition.position, direction, out RaycastHit hit, float.MaxValue, Mask))
             {
-                Debug.DrawRay(BulletSpawnPoint.position, direction * hit.distance, Color.red, 2.0f);
+                Debug.DrawRay(CameraPosition.position, direction * hit.distance, Color.red, 2.0f);
                 StartCoroutine(SpawnTrail(trail, hit.point, hit.normal, BounceDistance, true));
             }
             else
             {
-                StartCoroutine(SpawnTrail(trail, BulletSpawnPoint.position + direction * 100, Vector3.zero, BounceDistance, false));
+                StartCoroutine(SpawnTrail(trail, CameraPosition.position + direction * 50, Vector3.zero, BounceDistance, false));
             }
 
             LastShootTime = Time.time;

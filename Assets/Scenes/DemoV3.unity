@@ -521,6 +521,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f6d148d888ffbf54b9afe9936dfaec1f, type: 3}
+--- !u!4 &1895019925 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8944336655422409503, guid: f6d148d888ffbf54b9afe9936dfaec1f,
+    type: 3}
+  m_PrefabInstance: {fileID: 1526690522}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2003332486
 GameObject:
   m_ObjectHideFlags: 0
@@ -989,11 +995,31 @@ PrefabInstance:
       propertyPath: shootCam
       value: 
       objectReference: {fileID: 2070925442820625206}
+    - target: {fileID: 4146883248782902877, guid: 17e087e352a68bf4e9f3b5b60e1cc57f,
+        type: 3}
+      propertyPath: JumpTimeout
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4146883248782902877, guid: 17e087e352a68bf4e9f3b5b60e1cc57f,
+        type: 3}
+      propertyPath: JumpDelayTimeout
+      value: 0.3
+      objectReference: {fileID: 0}
     - target: {fileID: 7843800976686585168, guid: 17e087e352a68bf4e9f3b5b60e1cc57f,
         type: 3}
       propertyPath: m_Name
       value: MechV4
       objectReference: {fileID: 0}
+    - target: {fileID: 9073572953178312122, guid: 17e087e352a68bf4e9f3b5b60e1cc57f,
+        type: 3}
+      propertyPath: Speed
+      value: 600
+      objectReference: {fileID: 0}
+    - target: {fileID: 9073572953178312122, guid: 17e087e352a68bf4e9f3b5b60e1cc57f,
+        type: 3}
+      propertyPath: CameraPosition
+      value: 
+      objectReference: {fileID: 1895019925}
     - target: {fileID: 9073572953178312122, guid: 17e087e352a68bf4e9f3b5b60e1cc57f,
         type: 3}
       propertyPath: BulletSpawnPoint

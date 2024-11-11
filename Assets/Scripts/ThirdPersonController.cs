@@ -450,13 +450,14 @@ public class ThirdPersonController : MonoBehaviour
             if ((_input.jump == true) && (_jumpTimeoutDelta <= 0.0f) && (isDash == false))
             {
                 _jumpDelayTimeoutDelta -= Time.deltaTime;
+                _animator.SetBool("Jump", true);
             }
             if (_jumpDelayTimeoutDelta <= 0.0f)
             {
                 _verticalVelocity = 20f;
 
                 // update animator if using character
-                _animator.SetBool("Jump", true);
+                
                 JumpEffect1.Play();
                 JumpEffect2.Play();
                 _input.jump = false;

@@ -184,6 +184,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _center: {fileID: 3571612966859350233}
   ShootingSystem: {fileID: 4200950075149785487}
+  CameraPosition: {fileID: 0}
   BulletSpawnPoint: {fileID: 6575899594683742496}
   ImpactParticleSystem: {fileID: 8165003379161901055, guid: 9c30910207655324ca0452cf81e7b0e2,
     type: 3}
@@ -273,7 +274,7 @@ CharacterController:
   m_Height: 1.8
   m_Radius: 0.68
   m_SlopeLimit: 45
-  m_StepOffset: 3.03
+  m_StepOffset: 0.5
   m_SkinWidth: 0.0001
   m_MinMoveDistance: 0
   m_Center: {x: 0, y: 0.91, z: 0.18}
@@ -338,7 +339,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   canPush: 1
-  strength: 1.1
+  strength: 15
 --- !u!114 &3417906194115049421
 MonoBehaviour:
   m_ObjectHideFlags: 0
