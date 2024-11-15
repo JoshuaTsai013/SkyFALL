@@ -13,15 +13,15 @@ public class ThirdPersonShooterController : MonoBehaviour
 
     private PlayerInputs Inputs;
     [SerializeField]
-    private Gun gun;
-    // Start is called before the first frame update
-    void Start()
+    private Gun _gun;
+
+    private float _GunAngle;
+    
+    private void Start()
     {
         Inputs = GetComponent<PlayerInputs>();
     }
-
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
         if (Inputs.aim)
         {
@@ -29,6 +29,10 @@ public class ThirdPersonShooterController : MonoBehaviour
             shootCam.SetActive(true);
             cross.SetActive(true);
             _animator.SetBool("Aim", true);
+            GunAngle();
+
+
+            //_animator.SetFloat("GunAngle", 1);
         }
         else
         {
@@ -37,11 +41,19 @@ public class ThirdPersonShooterController : MonoBehaviour
             cross.SetActive(false);
             _animator.SetBool("Aim", false);
         }
+        
         if (Inputs.shoot)
         {
-            gun.Shoot();
+            _gun.Shoot();
         }
 
 
+    }
+
+    private void GunAngle()
+    {
+        _GunAngle = Mathf.Clamp(shootCam.transform.rotation.x, -1f, 1f);
+
+        _animator.SetFloat("GunAngle", _GunAngle);
     }
 }

@@ -5,9 +5,6 @@ using UnityEngine.VFX;
 public class Gun : MonoBehaviour
 {
     [SerializeField]
-    private Transform _center;
-
-    [SerializeField]
     private VisualEffect ShootingSystem;
     [SerializeField]
     private Transform CameraPosition;

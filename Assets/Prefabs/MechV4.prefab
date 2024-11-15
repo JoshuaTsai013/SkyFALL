@@ -191,7 +191,7 @@ MonoBehaviour:
   BulletTrail: {fileID: 8456660458047105354, guid: a20e9cc2bd6cb3943a973f292528d5eb,
     type: 3}
   ShootDelay: 0.05
-  Speed: 400
+  Speed: 600
   Mask:
     serializedVersion: 2
     m_Bits: 1
@@ -307,8 +307,8 @@ MonoBehaviour:
   JumpEffect4: {fileID: 5352557194045325339}
   Gravity: -27.94
   JumpHeight: 10
-  JumpDelayTimeout: 0.2
-  JumpTimeout: 0.21
+  JumpDelayTimeout: 0.3
+  JumpTimeout: 1
   FallTimeout: 0.15
   Grounded: 1
   GroundedOffset: -0.02
@@ -483,7 +483,7 @@ MonoBehaviour:
   cross: {fileID: 0}
   _animator: {fileID: 4896425599752064287}
   isAiming: 0
-  gun: {fileID: 9073572953178312122}
+  _gun: {fileID: 0}
 --- !u!114 &7187938138438305741
 MonoBehaviour:
   m_ObjectHideFlags: 0
