@@ -7,13 +7,19 @@ public class Gun : MonoBehaviour
     [SerializeField]
     private VisualEffect ShootingSystem;
     [SerializeField]
-    private Transform CameraPosition;
+    private Transform _GunRoot;
+    [SerializeField]
+    private Transform AimTransform;
+    [SerializeField]
+    private Transform NoAimTransform;
     [SerializeField]
     private Transform BulletSpawnPoint;
     [SerializeField]
     private ParticleSystem ImpactParticleSystem;
     [SerializeField]
     private TrailRenderer BulletTrail;
+     [SerializeField]
+    private PlayerInputs _Inputs;
     [SerializeField]
     private float ShootDelay = 0.1f;
     [SerializeField]
@@ -31,22 +37,24 @@ public class Gun : MonoBehaviour
     {
         if (LastShootTime + ShootDelay < Time.time)
         {
-            // Use an object pool instead for these! To keep this tutorial focused, we'll skip implementing one.
-            // for more details you can see: https://youtu.be/fsDE_mO4RZM or if using Unity 2021+: https://youtu.be/zyzqA_CPz2E
-
             ShootingSystem.Play();
 
-            Vector3 direction = transform.forward;
+            Vector3 direction = NoAimTransform.forward;
+            if (_Inputs.aim)
+            {
+                direction = AimTransform.forward;
+                _GunRoot.position = AimTransform.position;
+            }
             TrailRenderer trail = Instantiate(BulletTrail, BulletSpawnPoint.position, Quaternion.identity);
 
-            if (Physics.Raycast(CameraPosition.position, direction, out RaycastHit hit, float.MaxValue, Mask))
+            if (Physics.Raycast(_GunRoot.position, direction, out RaycastHit hit, float.MaxValue, Mask))
             {
-                Debug.DrawRay(CameraPosition.position, direction * hit.distance, Color.red, 2.0f);
+                Debug.DrawRay(_GunRoot.position, direction * hit.distance, Color.red, 2.0f);
                 StartCoroutine(SpawnTrail(trail, hit.point, hit.normal, BounceDistance, true));
             }
             else
             {
-                StartCoroutine(SpawnTrail(trail, CameraPosition.position + direction * 50, Vector3.zero, BounceDistance, false));
+                StartCoroutine(SpawnTrail(trail, AimTransform.position + direction * 50, Vector3.zero, BounceDistance, false));
             }
 
             LastShootTime = Time.time;

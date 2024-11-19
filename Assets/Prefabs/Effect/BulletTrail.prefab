@@ -10,9 +10,11 @@ GameObject:
   m_Component:
   - component: {fileID: 8888236383033624858}
   - component: {fileID: 8456660458047105354}
-  m_Layer: 0
+  - component: {fileID: 2247957974575722485}
+  - component: {fileID: -6795098934092726249}
+  m_Layer: 1
   m_Name: BulletTrail
-  m_TagString: Untagged
+  m_TagString: Bullet
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -74,7 +76,7 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Time: 0.3
+  m_Time: 0.04
   m_PreviewTimeScale: 1
   m_Parameters:
     serializedVersion: 3
@@ -84,7 +86,7 @@ TrailRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.34332585
+        value: 0
         inSlope: 0.0007971946
         outSlope: 0.0007971946
         tangentMode: 0
@@ -92,8 +94,8 @@ TrailRenderer:
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 0.37792522
-        value: 0.27758825
+        time: 0.3382565
+        value: 0.21420264
         inSlope: -0.31174114
         outSlope: -0.31174114
         tangentMode: 0
@@ -101,7 +103,7 @@ TrailRenderer:
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 1
+        time: 0.77999365
         value: 0
         inSlope: -0.15394531
         outSlope: -0.15394531
@@ -114,8 +116,8 @@ TrailRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 0.55620337, b: 0, a: 1}
-      key1: {r: 1, g: 0.86668766, b: 0, a: 1}
+      key0: {r: 1, g: 0.8531032, b: 0.4584905, a: 1}
+      key1: {r: 1, g: 0.72830254, b: 0.27735847, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 1}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -154,3 +156,39 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 1
   m_ApplyActiveColorSpace: 1
+--- !u!136 &2247957974575722485
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1354635090213394351}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.1
+  m_Height: 0
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-6795098934092726249
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1354635090213394351}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 665cdd3604099e94490e5f923267b04c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 10
