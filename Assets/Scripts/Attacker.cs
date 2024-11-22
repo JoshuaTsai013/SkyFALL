@@ -14,5 +14,6 @@ public class Attacker : MonoBehaviour
     //     other.GetComponent<CharacterGeneral>()?.TakeDamage(this);
     // }
     other.GetComponent<CharacterGeneral>()?.TakeDamage(this);
+    Debug.Log("Attacker: OnTriggerEnter");
  }
 }

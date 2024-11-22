@@ -35,9 +35,7 @@ public class BoxMovement : MonoBehaviour
         if (t >= 1f)
         {
             // Swap start and end positions to reverse direction
-            Vector3 temp = startPosition.position;
-            startPosition.position = endPosition.position;
-            endPosition.position = temp;
+            (endPosition.position, startPosition.position) = (startPosition.position, endPosition.position);
 
             // Reset elapsed time
             elapsedTime = 0f;
