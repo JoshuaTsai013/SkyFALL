@@ -19,6 +19,7 @@ public class UIManager : MonoBehaviour
     {
         float Percentage = Character.currentHealth/Character.maxHealth;
         hud.SetHeatBar(Percentage);
+        hud.SetBloodBar(Percentage);
     }
 
     private void OnDisable()

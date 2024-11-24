@@ -33,28 +33,30 @@ public class Gun : MonoBehaviour
 
     private float LastShootTime;
 
+    private Vector3 _BulletDirection;
+
     public void Shoot()
     {
         if (LastShootTime + ShootDelay < Time.time)
         {
             ShootingSystem.Play();
 
-            Vector3 direction = NoAimTransform.forward;
+            _BulletDirection = NoAimTransform.forward;
             if (_Inputs.aim)
             {
-                direction = AimTransform.forward;
+                _BulletDirection = AimTransform.forward;
                 _GunRoot.position = AimTransform.position;
             }
             TrailRenderer trail = Instantiate(BulletTrail, BulletSpawnPoint.position, Quaternion.identity);
 
-            if (Physics.Raycast(_GunRoot.position, direction, out RaycastHit hit, float.MaxValue, Mask))
+            if (Physics.Raycast(_GunRoot.position, _BulletDirection, out RaycastHit hit, float.MaxValue, Mask))
             {
-                Debug.DrawRay(_GunRoot.position, direction * hit.distance, Color.red, 2.0f);
+                Debug.DrawRay(_GunRoot.position, _BulletDirection * hit.distance, Color.red, 2.0f);
                 StartCoroutine(SpawnTrail(trail, hit.point, hit.normal, BounceDistance, true));
             }
             else
             {
-                StartCoroutine(SpawnTrail(trail, AimTransform.position + direction * 50, Vector3.zero, BounceDistance, false));
+                StartCoroutine(SpawnTrail(trail, AimTransform.position + _BulletDirection * 50, Vector3.zero, BounceDistance, false));
             }
 
             LastShootTime = Time.time;

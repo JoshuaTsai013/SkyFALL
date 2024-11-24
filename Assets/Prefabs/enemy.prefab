@@ -810,8 +810,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 50
   currentHealth: 100
+  boomHeight: 3
   DieParticleSystem: {fileID: 2304969192440461609, guid: e6ef0687cccd0064da3a9aa5b724d67d,
     type: 3}
+  OnHeatChange:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1431043872487179707
 MonoBehaviour:
   m_ObjectHideFlags: 0

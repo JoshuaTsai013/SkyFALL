@@ -45,8 +45,12 @@ public class ThirdPersonShooterController : MonoBehaviour
         if (Inputs.shoot)
         {
             _gun.Shoot();
+            _animator.SetBool("Shoot", true);
         }
-
+        else
+        {
+            _animator.SetBool("Shoot", false);
+        }
 
     }
 

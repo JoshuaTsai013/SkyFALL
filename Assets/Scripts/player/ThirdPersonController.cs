@@ -76,10 +76,10 @@ public class ThirdPersonController : MonoBehaviour
     public GameObject CinemachineCameraTarget;
 
     [Tooltip("How far in degrees can you move the camera up")]
-    public float TopClamp = 70.0f;
+    [Range(-50.0f, 50.0f)] public float TopClamp = 10.0f;
 
     [Tooltip("How far in degrees can you move the camera down")]
-    public float BottomClamp = -30.0f;
+    [Range(-50.0f, 50.0f)] public float BottomClamp = -10.0f;
 
     [Tooltip("Additional degress to override the camera. Useful for fine tuning camera position when locked")]
     public float CameraAngleOverride = 0.0f;
@@ -433,12 +433,12 @@ public class ThirdPersonController : MonoBehaviour
 
             // update animator if using character
 
-            
-                _animator.SetBool("Jump", false);
-                _animator.SetBool("FreeFall", false);
-                JumpEffect1.Stop();
-                JumpEffect2.Stop();
-            
+
+            _animator.SetBool("Jump", false);
+            _animator.SetBool("FreeFall", false);
+            JumpEffect1.Stop();
+            JumpEffect2.Stop();
+
 
             // stop our velocity dropping infinitely when grounded
             if (_verticalVelocity < 0.0f)
@@ -457,7 +457,7 @@ public class ThirdPersonController : MonoBehaviour
                 _verticalVelocity = 20f;
 
                 // update animator if using character
-                
+
                 JumpEffect1.Play();
                 JumpEffect2.Play();
                 _input.jump = false;

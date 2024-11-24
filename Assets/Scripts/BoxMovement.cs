@@ -12,7 +12,7 @@ public class BoxMovement : MonoBehaviour
 
 
     private float elapsedTime;
-    private bool movingToEnd = true;
+    // private bool movingToEnd = true;
 
     void Start()
     {
