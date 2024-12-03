@@ -6,25 +6,16 @@ using UnityEngine;
 public class UIManager : MonoBehaviour
 {
     public PlayerHUD hud;
-    [Header("Events Monitoring")] 
-    public PlayerEventSO HeatEvent;
 
-
-    private void OnEnable()
+    private void Start()
     {
-        HeatEvent.OnEventRaised += OnHeatEvent;
+        hud.SetBloodBar(1);
+        hud.SetHeatBar(0);
     }
 
-    private void OnHeatEvent(CharacterGeneral Character)
+    private void FixedUpdate()
     {
-        float Percentage = Character.currentHealth/Character.maxHealth;
-        hud.SetHeatBar(Percentage);
-        hud.SetBloodBar(Percentage);
-    }
-
-    private void OnDisable()
-    {
-        HeatEvent.OnEventRaised -= OnHeatEvent;
-        
+        // float Percentage = PlayerManager.instance.player.GetComponent<CharacterGeneral>().currentHealth/PlayerManager.instance.player.GetComponent<CharacterGeneral>().maxHealth;
+        hud.SetBloodBar(PlayerManager.instance.player.GetComponent<CharacterGeneral>().HealthPercentage);
     }
 }

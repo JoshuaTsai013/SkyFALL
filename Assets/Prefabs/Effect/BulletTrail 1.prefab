@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 1354635090213394351}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -24.68, y: 8.14, z: 1.2261502}
+  m_LocalPosition: {x: -22.124702, y: 3.8422742, z: 1.2261502}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -76,7 +76,7 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Time: 0.1
+  m_Time: 0.05
   m_PreviewTimeScale: 1
   m_Parameters:
     serializedVersion: 3
@@ -85,8 +85,8 @@ TrailRenderer:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0
-        value: 0
+        time: 0.055706024
+        value: 0.0118255615
         inSlope: 0.0007971946
         outSlope: 0.0007971946
         tangentMode: 0
@@ -94,8 +94,8 @@ TrailRenderer:
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 0.3382565
-        value: 0.13873267
+        time: 0.21966517
+        value: 0.18601966
         inSlope: -0.31174114
         outSlope: -0.31174114
         tangentMode: 0
@@ -103,7 +103,7 @@ TrailRenderer:
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 0.63793945
+        time: 0.43486023
         value: 0
         inSlope: -0.15394531
         outSlope: -0.15394531
@@ -170,7 +170,7 @@ CapsuleCollider:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_LayerOverridePriority: 0
+  m_LayerOverridePriority: 10
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1

@@ -5,13 +5,15 @@ using UnityEngine.UI;
 
 public class PlayerHUD : MonoBehaviour
 {
-  public Image HeatBar;
+  public Image HeatBarL;
+  public Image HeatBarR;
   public Image BloodBar;
 
 
   public void SetHeatBar(float value)
   {
-    HeatBar.fillAmount = value;
+    HeatBarL.fillAmount = value;
+    HeatBarR.fillAmount = value;
   }
 
   public void SetBloodBar(float value)

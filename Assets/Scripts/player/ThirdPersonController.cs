@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.VFX;
+using UnityEngine.Events;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerInput))]
@@ -94,7 +95,6 @@ public class ThirdPersonController : MonoBehaviour
     // player
     private float _speed;
     private Vector3 _inputDirection;
-    //private Vector3 inputDirectionLastTime;
     private Vector3 _targetDirection;
     private float _animationBlend;
     private float _targetRotation = 0.0f;
@@ -118,6 +118,8 @@ public class ThirdPersonController : MonoBehaviour
     private PlayerInputs _input;  //Created by me
     private GameObject _mainCamera;
     private ThirdPersonShooterController _thirdPersonShooterController;
+    private float currentHeat;
+    private float maxHeat;
     private const float _threshold = 0.01f;
     private bool IsCurrentDeviceMouse
     {
@@ -158,8 +160,6 @@ public class ThirdPersonController : MonoBehaviour
 
     private void Update()
     {
-        //GroundedCheck();
-        //JumpAndGravity();
         Dash();
         Move();
     }
@@ -169,13 +169,7 @@ public class ThirdPersonController : MonoBehaviour
         GroundedCheck();
         JumpAndGravity();
         CheckDirection();
-        //Dash();
-        //Move();
-        //CameraRotation();
     }
-
-
-
 
     private void LateUpdate()
     {
@@ -251,7 +245,6 @@ public class ThirdPersonController : MonoBehaviour
 
             // normalise input direction
 
-
             // if there is a move input rotate player when the player is moving
             if (_input.move != Vector2.zero)
             {
@@ -319,51 +312,7 @@ public class ThirdPersonController : MonoBehaviour
         _animator.SetFloat("Speed", _animationBlend);
         _animator.SetFloat("MotionSpeed", inputMagnitude);
     }
-    // private void Move()
-    // {
-    //     // a reference to the players current horizontal velocity
-    //     float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
-    //     float targetSpeed = MoveSpeed;
-    //     float speedOffset = 0.5f;
-    //     float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
-    //     _inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
-
-    //     //act according to states
-
-    //         // accelerate or decelerate to target speed
-    //         if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
-    //         {
-    //             // creates curved result rather than a linear one giving a more organic speed change
-    //             _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude, Time.deltaTime * SpeedChangeRate);
-    //             // round speed to 3 decimal places
-    //             _speed = Mathf.Round(_speed * 1000f) / 1000f;
-    //         }
-    //         else if (_input.move == Vector2.zero)
-    //         {
-    //             _speed = 0.0f;
-    //         }
-    //         else
-    //         { _speed = targetSpeed; }
-
-
-    //         // rotate to face camera rotation
-    //         float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _mainCamera.transform.eulerAngles.y, ref _rotationVelocity, RotationSmoothTimeOnAim);
-    //         transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
-
-    //         _targetRotation = Mathf.Atan2(_inputDirection.x, _inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
-    //         _targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
-
-
-    //     _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
-    //     if (_animationBlend < 0.01f) _animationBlend = 0f;
-
-    //     // move the player
-    //     _controller.Move(_targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
-
-    //     // update animator if using character
-    //     _animator.SetFloat("Speed", _animationBlend);
-    //     _animator.SetFloat("MotionSpeed", inputMagnitude);
-    // }
+    
     private void CheckDirection()
     {
         float smoothX = Mathf.Lerp(_animator.GetFloat("X"), _inputDirection.x, Time.deltaTime * SpeedChangeRate);
@@ -399,7 +348,6 @@ public class ThirdPersonController : MonoBehaviour
         else
         {
             _input.Dash = false;
-
         }
 
         //Timeout Dash
@@ -432,13 +380,10 @@ public class ThirdPersonController : MonoBehaviour
             _fallTimeoutDelta = FallTimeout;
 
             // update animator if using character
-
-
             _animator.SetBool("Jump", false);
             _animator.SetBool("FreeFall", false);
             JumpEffect1.Stop();
             JumpEffect2.Stop();
-
 
             // stop our velocity dropping infinitely when grounded
             if (_verticalVelocity < 0.0f)
@@ -455,11 +400,6 @@ public class ThirdPersonController : MonoBehaviour
             if (_jumpDelayTimeoutDelta <= 0.0f)
             {
                 _verticalVelocity = 20f;
-
-                // update animator if using character
-
-                JumpEffect1.Play();
-                JumpEffect2.Play();
                 _input.jump = false;
                 _jumpDelayTimeoutDelta = JumpDelayTimeout;
                 _jumpTimeoutDelta = JumpTimeout;
@@ -474,6 +414,8 @@ public class ThirdPersonController : MonoBehaviour
         }
         else
         {
+            JumpEffect1.Play();
+            JumpEffect2.Play();
             //set the Rotation speed on Air
             _rotationSmoothTime = RotationSmoothTimeOnAir;
 

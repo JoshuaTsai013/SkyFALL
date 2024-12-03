@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class ThirdPersonShooterController : MonoBehaviour
 {
     public GameObject shootCam;
+    public GameObject mainCam;
     public GameObject cross;
 
     public Animator _animator;
@@ -30,9 +32,6 @@ public class ThirdPersonShooterController : MonoBehaviour
             cross.SetActive(true);
             _animator.SetBool("Aim", true);
             GunAngle();
-
-
-            //_animator.SetFloat("GunAngle", 1);
         }
         else
         {
@@ -40,6 +39,7 @@ public class ThirdPersonShooterController : MonoBehaviour
             shootCam.SetActive(false);
             cross.SetActive(false);
             _animator.SetBool("Aim", false);
+            _animator.SetFloat("GunAngle", 0f);
         }
         
         if (Inputs.shoot)
@@ -51,12 +51,15 @@ public class ThirdPersonShooterController : MonoBehaviour
         {
             _animator.SetBool("Shoot", false);
         }
-
     }
 
     private void GunAngle()
     {
-        _GunAngle = Mathf.Clamp(shootCam.transform.rotation.x, -1f, 1f);
+        _GunAngle = mainCam.transform.eulerAngles.x;
+        if (_GunAngle > 180)
+        {
+            _GunAngle -= 360;
+        }
 
         _animator.SetFloat("GunAngle", _GunAngle);
     }
