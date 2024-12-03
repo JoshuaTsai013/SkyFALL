@@ -7,8 +7,8 @@ public class MinionGun : MonoBehaviour
 {
     [SerializeField]
     private VisualEffect ShootingSystem;
-    // [SerializeField]
-    // private Transform BulletSpawnPoint;
+    [SerializeField]
+    private Transform GunRoot;
     [SerializeField]
     private ParticleSystem ImpactParticleSystem;
     [SerializeField]
@@ -26,6 +26,10 @@ public class MinionGun : MonoBehaviour
 
     private float LastShootTime;
 
+    void Start()
+    {
+        gameObject.SetActive(false); // disable self
+    }
     private void Update()
     {
         Shoot();
@@ -34,24 +38,25 @@ public class MinionGun : MonoBehaviour
     {
         if (LastShootTime + ShootDelay < Time.time)
         {
-            ShootingSystem.Play();
-
-            Vector3 direction = transform.forward;
+            Vector3 direction = GunRoot.forward;
             TrailRenderer trail = Instantiate(BulletTrail, transform.position, Quaternion.identity);
-
-            if (Physics.Raycast(transform.position, direction, out RaycastHit hit, float.MaxValue, Mask))
+            ShootingSystem.Play();
+            if (Physics.Raycast(GunRoot.position, direction, out RaycastHit hit, float.MaxValue, Mask))
             {
-                Debug.DrawRay(transform.position, direction * hit.distance, Color.red, 2.0f);
+                Debug.DrawRay(GunRoot.position, direction * hit.distance, Color.red, 2.0f);
                 StartCoroutine(SpawnTrail(trail, hit.point, hit.normal, BounceDistance, true));
             }
             else
             {
-                StartCoroutine(SpawnTrail(trail, direction * 50, Vector3.zero, BounceDistance, false));
+                StartCoroutine(SpawnTrail(trail, direction * 500, Vector3.zero, BounceDistance, false));
             }
+
 
             LastShootTime = Time.time;
         }
     }
+
+
 
     private IEnumerator SpawnTrail(TrailRenderer Trail, Vector3 HitPoint, Vector3 HitNormal, float BounceDistance, bool MadeImpact)
     {
