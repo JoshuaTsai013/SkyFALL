@@ -58,7 +58,7 @@ public class PlayerInputs : MonoBehaviour
     public void MoveInput(InputAction.CallbackContext ctx)
     {
         move = ctx.ReadValue<Vector2>();
-        Debug.Log("Move: " + move);
+        // Debug.Log("Move: " + move);
     }
 
     public void LookInput(InputAction.CallbackContext ctx)
@@ -95,7 +95,7 @@ public class PlayerInputs : MonoBehaviour
         {
             aim = false;
         }
-        Debug.Log("Aim: " + aim);
+        // Debug.Log("Aim: " + aim);
     }
     public void ShootInput(InputAction.CallbackContext ctx)
     {
@@ -108,7 +108,7 @@ public class PlayerInputs : MonoBehaviour
         {
             shoot = false;
         }
-        Debug.Log("Shoot: " + shoot);
+        // Debug.Log("Shoot: " + shoot);
     }
 
 

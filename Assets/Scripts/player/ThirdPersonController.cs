@@ -30,6 +30,9 @@ public class ThirdPersonController : MonoBehaviour
     [Header("Dash")]
     [Space(5)]
 
+    [Tooltip("Player can Dash")]
+
+    public bool CanDash = true; //will be set to false when player is aiming and shooting and overheat
     [Tooltip("Player started Dash")]
     public bool isDash = false;
     [Tooltip("Dash speed of the character in m/s")]
@@ -41,6 +44,10 @@ public class ThirdPersonController : MonoBehaviour
 
     [Header("Jump")]
     [Space(5)]
+    [Tooltip("Player can Jump")]
+    public bool CanJump = true; //will be set to false when player is not on ground and overheat
+    [Tooltip("Player started Jump")]
+    public bool isJump = false;
     public VisualEffect JumpEffect1;
     public VisualEffect JumpEffect2;
     public VisualEffect JumpEffect3;
@@ -107,7 +114,7 @@ public class ThirdPersonController : MonoBehaviour
     // timeout deltatime
     private float _DashTimeoutDelta;
     private float _DashDurationDelta;
-    private float _jumpDelayTimeoutDelta;
+    // private float _jumpDelayTimeoutDelta;
     private float _jumpTimeoutDelta;
     private float _fallTimeoutDelta;
 
@@ -116,10 +123,11 @@ public class ThirdPersonController : MonoBehaviour
     private CharacterController _controller;
 
     private PlayerInputs _input;  //Created by me
+
+    private Vector3 _inputDirectionLastTime;
     private GameObject _mainCamera;
     private ThirdPersonShooterController _thirdPersonShooterController;
-    private float currentHeat;
-    private float maxHeat;
+
     private const float _threshold = 0.01f;
     private bool IsCurrentDeviceMouse
     {
@@ -151,7 +159,7 @@ public class ThirdPersonController : MonoBehaviour
 
         _rotationSmoothTime = RotationSmoothTimeOnGround;
         // reset our timeouts on start
-        _jumpDelayTimeoutDelta = JumpDelayTimeout;
+        // _jumpDelayTimeoutDelta = JumpDelayTimeout;
         _jumpTimeoutDelta = JumpTimeout;
         _fallTimeoutDelta = FallTimeout;
         _DashTimeoutDelta = DashTimeout;
@@ -162,13 +170,15 @@ public class ThirdPersonController : MonoBehaviour
     {
         Dash();
         Move();
+
     }
 
     private void FixedUpdate()
     {
         GroundedCheck();
-        JumpAndGravity();
+        FreefallAndGravity();
         CheckDirection();
+        Jump();
     }
 
     private void LateUpdate()
@@ -179,22 +189,35 @@ public class ThirdPersonController : MonoBehaviour
     private void GroundedCheck()
     {
         // set sphere position, with offset
-        Vector3 spherePosition = new(transform.position.x, transform.position.y - GroundedOffset,
-            transform.position.z);
-        Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers,
-            QueryTriggerInteraction.Ignore);
+        Vector3 spherePosition = new(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
+        Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
 
-        if (Grounded || isDash)
+        if (Grounded)
         {
             MoveSpeed = MoveSpeedOnGround;
+            //reset the Rotation speed on ground
+            _rotationSmoothTime = RotationSmoothTimeOnGround;
+
+            
+
+
+            // stop our velocity dropping infinitely when grounded
+            if (_verticalVelocity < 0.0f)
+            {
+                _verticalVelocity = -2f;
+            }
         }
         else
         {
             MoveSpeed = MoveSpeedOnAir;
+            //set the Rotation speed on Air
+            _rotationSmoothTime = RotationSmoothTimeOnAir;
         }
-        // update animator if using character
-        _animator.SetBool("Grounded", Grounded);
+        _animator.SetBool("Grounded", Grounded); // update animator if using character
+
     }
+
+
 
     private void CameraRotation()
     {
@@ -217,6 +240,7 @@ public class ThirdPersonController : MonoBehaviour
             _cinemachineTargetYaw, 0.0f);
     }
 
+    #region Move
     private void Move()
     {
         // a reference to the players current horizontal velocity
@@ -227,7 +251,7 @@ public class ThirdPersonController : MonoBehaviour
         _inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
 
         //act according to states
-        if (isDash != true && _thirdPersonShooterController.isAiming != true)
+        if ((isDash == false) && (_thirdPersonShooterController.isAiming == false))   //Normal Movement
         {
             // if there is no input, set the target speed to 0
             if (_input.move == Vector2.zero) { targetSpeed = 0.0f; }
@@ -256,8 +280,10 @@ public class ThirdPersonController : MonoBehaviour
                 transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
             _targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
+
+            _inputDirectionLastTime = _inputDirection; //save the last input direction
         }
-        else if (isDash == true)
+        else if (isDash == true)    //Dash Movement
         {
             targetSpeed = DashSpeed;
 
@@ -272,11 +298,11 @@ public class ThirdPersonController : MonoBehaviour
             else
             { _speed = targetSpeed; }
 
-            _targetRotation = Mathf.Atan2(_inputDirection.x, _inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
+            _targetRotation = Mathf.Atan2(_inputDirectionLastTime.x, _inputDirectionLastTime.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
             _targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
         }
-        else
+        else    //Aim Movement
         {
             // accelerate or decelerate to target speed
             if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
@@ -301,6 +327,8 @@ public class ThirdPersonController : MonoBehaviour
             _targetRotation = Mathf.Atan2(_inputDirection.x, _inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
             _targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
+            _inputDirectionLastTime = _inputDirection; //save the last input direction
+
         }
         _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
         if (_animationBlend < 0.01f) _animationBlend = 0f;
@@ -312,7 +340,8 @@ public class ThirdPersonController : MonoBehaviour
         _animator.SetFloat("Speed", _animationBlend);
         _animator.SetFloat("MotionSpeed", inputMagnitude);
     }
-    
+    #endregion
+
     private void CheckDirection()
     {
         float smoothX = Mathf.Lerp(_animator.GetFloat("X"), _inputDirection.x, Time.deltaTime * SpeedChangeRate);
@@ -320,17 +349,22 @@ public class ThirdPersonController : MonoBehaviour
         _animator.SetFloat("X", smoothX);
         _animator.SetFloat("Z", smoothZ);
     }
+    #region Dash
+
     private void Dash()
     {
-
-        if (_input.Dash && (_DashTimeoutDelta <= 0.0f) && (_input.move != Vector2.zero))
+        if (CanDash && _input.Dash && (_DashTimeoutDelta <= 0.0f) && (_input.move != Vector2.zero))  //Only Dash when there is input, Trigger Once Only
         {
             isDash = true;
             _animator.SetBool("Dash", true);
+            PlayerManager.instance.player.GetComponent<Heat>().AddDashHeat();
             JumpEffect3.Play();
             JumpEffect4.Play();
+
+            CanJump = false;
+
             //check angle between player input and character facing
-            Vector3 vectorinputXZ = new(_inputDirection.x, 0, _inputDirection.z);
+            Vector3 vectorinputXZ = new(_inputDirectionLastTime.x, 0, _inputDirectionLastTime.z);
             Quaternion cameraLookRotation = Quaternion.LookRotation(_mainCamera.transform.forward);
             Vector3 result = cameraLookRotation * vectorinputXZ;
 
@@ -353,9 +387,12 @@ public class ThirdPersonController : MonoBehaviour
         //Timeout Dash
         if (isDash)
         {
+            CanJump = false;
+            _input.jump = false;
             _DashDurationDelta -= Time.deltaTime;
             if (_DashDurationDelta <= 0.0f)
             {
+
                 _DashDurationDelta = DashDuration;
                 _input.Dash = false;
                 isDash = false;
@@ -364,61 +401,67 @@ public class ThirdPersonController : MonoBehaviour
                 JumpEffect4.Stop();
             }
         }
+        else
+        {
+            CanJump = true;
+        }
 
         if (_DashTimeoutDelta >= 0.0f)
         {
             _DashTimeoutDelta -= Time.deltaTime;
         }
     }
-    private void JumpAndGravity()
+    #endregion
+    #region Jump
+    private void Jump()
     {
         if (Grounded)
         {
-            //reset the Rotation speed on ground
-            _rotationSmoothTime = RotationSmoothTimeOnGround;
-            // reset the fall timeout timer
-            _fallTimeoutDelta = FallTimeout;
-
-            // update animator if using character
+            // update animator
             _animator.SetBool("Jump", false);
-            _animator.SetBool("FreeFall", false);
-            JumpEffect1.Stop();
-            JumpEffect2.Stop();
-
-            // stop our velocity dropping infinitely when grounded
-            if (_verticalVelocity < 0.0f)
-            {
-                _verticalVelocity = -2f;
-            }
 
             // Jump
-            if ((_input.jump == true) && (_jumpTimeoutDelta <= 0.0f) && (isDash == false))
+            if (CanJump && _input.jump && (_jumpTimeoutDelta <= 0.0f))
             {
-                _jumpDelayTimeoutDelta -= Time.deltaTime;
+
                 _animator.SetBool("Jump", true);
-            }
-            if (_jumpDelayTimeoutDelta <= 0.0f)
-            {
-                _verticalVelocity = 20f;
+                PlayerManager.instance.player.GetComponent<Heat>().AddJumpHeat();
                 _input.jump = false;
-                _jumpDelayTimeoutDelta = JumpDelayTimeout;
-                _jumpTimeoutDelta = JumpTimeout;
+                Invoke("JumpInvoke", JumpDelayTimeout);
             }
 
             // jump timeout
             if (_jumpTimeoutDelta >= 0.0f)
             {
                 _jumpTimeoutDelta -= Time.deltaTime;
-                _input.jump = false;
+                // _input.jump = false;
             }
+        }
+
+    }
+
+    private void JumpInvoke()
+    {
+        _verticalVelocity = 20f;
+        _input.jump = false;
+        _jumpTimeoutDelta = JumpTimeout;
+    }
+    #endregion
+    #region Freefall And Gravity
+    private void FreefallAndGravity()
+    {
+        if (Grounded)
+        {
+            // reset the fall timeout timer
+            _fallTimeoutDelta = FallTimeout;
+            _animator.SetBool("FreeFall", false);
+            JumpEffect1.Stop();
+            JumpEffect2.Stop();
         }
         else
         {
             JumpEffect1.Play();
             JumpEffect2.Play();
-            //set the Rotation speed on Air
-            _rotationSmoothTime = RotationSmoothTimeOnAir;
-
             // fall timeout
             if (_fallTimeoutDelta >= 0.0f)
             {
@@ -426,16 +469,16 @@ public class ThirdPersonController : MonoBehaviour
             }
             else
             {
-                // update animator if using character
-                _animator.SetBool("FreeFall", true);
+                _animator.SetBool("FreeFall", true);// update animator if using character
             }
         }
-
+        // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
         if (_verticalVelocity < _terminalVelocity)
         {
             _verticalVelocity += Gravity * Time.deltaTime;
         }
     }
+    #endregion
     private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
     {
         if (lfAngle < -360f) lfAngle += 360f;

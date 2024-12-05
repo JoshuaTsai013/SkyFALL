@@ -12,22 +12,23 @@ public class MinionAI : MonoBehaviour
   public Animator animator;
 
   public LayerMask whatIsGround;
-  // public LayerMask whatIsPlayer;
+  public CharacterGeneral TakeDamage;
   //state
   public float sightRange = 10f;
   public float attackRange = 10f;
-  bool playerInsiight, playerInAttack;
+  bool playerInsight, playerInAttack;
 
 
-  //patroling
+  //patrolling
   public Vector3 walkPoint;
   bool walkPointSet;
   public float walkPointRange;
-
+  public Transform patrolCenter;    // 巡邏中心點
+  public float patrolRadius = 10f;  // 巡邏半徑
   //attacking
   public float timeBetweenAttack;
   bool alreadyAttacked;
-  public MinionGun minionGun;
+  // public MinionGun minionGun;
   public GameObject MiniGun;
 
 
@@ -35,85 +36,83 @@ public class MinionAI : MonoBehaviour
   {
     target = PlayerManager.instance.player.transform;
     agent = GetComponent<NavMeshAgent>();
-    minionGun = GetComponent<MinionGun>();
+    // minionGun = GetComponent<MinionGun>();
+    Patroling();
+    MiniGun.SetActive(false);
   }
 
-  void Update()
+  void Update()//狀態
   {
     float distance = Vector3.Distance(target.position, transform.position);
+    // if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
+    // {
+    //   Patroling();
+    //   Debug.Log("Patroling");
+    // }
     if (distance >= sightRange)
     {
-      playerInsiight = false;
+      playerInsight = false;
       playerInAttack = false;
     }
     if (distance <= sightRange)
     {
-      playerInsiight = true;
+      playerInsight = true;
       playerInAttack = false;
     }
     if (distance <= attackRange)
     {
-      playerInsiight = true;
+      playerInsight = true;
       playerInAttack = true;
     }
-    if (!playerInsiight && !playerInAttack)
+    if (!playerInsight && !playerInAttack)
     {
       Patroling();
+      // Debug.Log("Patroling");
     }
-    if (playerInsiight && !playerInAttack)
+    if (playerInsight && !playerInAttack)
     {
       Chasing();
+      // Debug.Log("Chasing");
     }
-    if (playerInsiight && playerInAttack)
+    if (playerInsight && playerInAttack)
     {
       Attacking();
+      // Debug.Log("Attacking");
     }
-
   }
-  void Patroling()//巡邏
+  void Patroling()
   {
-    if (!walkPointSet)
-    {
-      SearchWalkPoint();
-    }
-    if (walkPointSet)
-    {
-      agent.SetDestination(walkPoint);
-      animator.SetBool("Walk", true);
-      animator.SetBool("Attack", false);
-    }
-    Vector3 distanceToWalkPoint = transform.position - walkPoint;
+    Vector3 randomPoint = RandomPointAroundCenter();
+    NavMeshHit hit;
+    MiniGun.SetActive(false);
+    animator.SetBool("Walk", true);
+    animator.SetBool("Attack", false);
 
-    if (distanceToWalkPoint.magnitude < 1f)//超出範圍
+    // 確保目標點位於有效的 NavMesh 範圍內
+    if (NavMesh.SamplePosition(randomPoint, out hit, patrolRadius, NavMesh.AllAreas))
     {
-      walkPointSet = false;
+      agent.SetDestination(hit.position);
     }
-    if (MiniGun != null && MiniGun.activeSelf)
-    {
-      HideMiniGun();
-    }
-
   }
-  private void SearchWalkPoint()//設定巡邏範圍
+
+  Vector3 RandomPointAroundCenter()
   {
-    float randomZ = Random.Range(-walkPointRange, walkPointRange);
-    float randomX = Random.Range(-walkPointRange, walkPointRange);
-    walkPoint = new Vector3(transform.position.x + randomX, transform.position.y, transform.position.z + randomZ);
-    if (Physics.Raycast(walkPoint, -transform.up, 2f, whatIsGround))
-    {
-      walkPointSet = true;
-    }
+    // 在圓周上隨機生成一個點
+    float angle = Random.Range(0f, Mathf.PI * 2); // 隨機角度
+    Vector3 offset = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * patrolRadius;
+    return patrolCenter.position + offset;       // 偏移量加到中心點
   }
+
+
+
   void Attacking()//攻擊
   {
-
-    MiniGun.SetActive(true);
     agent.SetDestination(transform.position);
-    Vector3 targetXZ = new(PlayerManager.instance.player.transform.position.x, 0, PlayerManager.instance.player.transform.position.z);
-    
+    Vector3 targetXZ = new(PlayerManager.instance.player.transform.position.x, transform.position.y, PlayerManager.instance.player.transform.position.z);
     transform.LookAt(targetXZ);
     animator.SetBool("Walk", false);
     animator.SetBool("Attack", true);
+    MiniGun.SetActive(true);
     // 顯示 Minigun
   }
   void Chasing()//追隨
@@ -121,19 +120,19 @@ public class MinionAI : MonoBehaviour
     agent.SetDestination(target.position);
     animator.SetBool("Walk", true);
     animator.SetBool("Attack", false);
-    if (MiniGun != null && MiniGun.activeSelf)
-    {
-      HideMiniGun();
-    }
-
+    // if (MiniGun != null && MiniGun.activeSelf)
+    // {
+    //   HideMiniGun();
+    // }
+    MiniGun.SetActive(false);
   }
-  void HideMiniGun()//隱藏子彈物件(不攻擊)
-  {
-    if (MiniGun != null && MiniGun.activeSelf)
-    {
-      MiniGun.SetActive(false);
-    }
-  }
+  // void HideMiniGun()
+  // {
+  //   if (MiniGun != null && MiniGun.activeSelf)
+  //   {
+  //     MiniGun.SetActive(false);
+  //   }
+  // }
   void OnDrawGizmos()//畫出視野半徑
   {
     Gizmos.color = Color.red;

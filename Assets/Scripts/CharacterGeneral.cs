@@ -14,6 +14,9 @@ public class CharacterGeneral : MonoBehaviour
     public float currentHeat = 0;
     public float HeatPercentage => currentHeat / maxHeat;
 
+    //新增解體功能
+    public MinionDestruct SelfDestroy;
+    // public bool getdestruct = false;
     [Range(-10.0f, 20.0f)] public float boomHeight = 1.0f;
 
     public ParticleSystem DieParticleSystem;
@@ -21,9 +24,10 @@ public class CharacterGeneral : MonoBehaviour
     private void Start()
     {
         currentHealth = maxHealth;
+        SelfDestroy = GetComponent<MinionDestruct>();
     }
 
-    
+
     public void TakeDamage(Attacker attacker)
     {
         currentHealth -= attacker.damage;
@@ -32,6 +36,11 @@ public class CharacterGeneral : MonoBehaviour
         {
             // Die();
             // Debug.Log("Character died");
+            // getdestruct = true;
+        if (SelfDestroy != null)
+        {
+            SelfDestroy.SelfDestroy();
+        }
             if (DieParticleSystem != null)
             {
                 Vector3 boomPos = transform.position + new Vector3(0, boomHeight, 0);

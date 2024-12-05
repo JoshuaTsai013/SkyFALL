@@ -17,5 +17,6 @@ public class UIManager : MonoBehaviour
     {
         // float Percentage = PlayerManager.instance.player.GetComponent<CharacterGeneral>().currentHealth/PlayerManager.instance.player.GetComponent<CharacterGeneral>().maxHealth;
         hud.SetBloodBar(PlayerManager.instance.player.GetComponent<CharacterGeneral>().HealthPercentage);
+        hud.SetHeatBar(PlayerManager.instance.player.GetComponent<Heat>().HeatPercentage);
     }
 }

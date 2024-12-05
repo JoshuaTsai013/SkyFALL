@@ -11,8 +11,10 @@ GameObject:
   - component: {fileID: 8888236383033624858}
   - component: {fileID: 8456660458047105354}
   - component: {fileID: 2247957974575722485}
+  - component: {fileID: 6944882898462788646}
+  - component: {fileID: 17810524872265429}
   - component: {fileID: -6795098934092726249}
-  m_Layer: 1
+  m_Layer: 11
   m_Name: BulletTrail
   m_TagString: Bullet
   m_Icon: {fileID: 0}
@@ -170,15 +172,61 @@ CapsuleCollider:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_LayerOverridePriority: 0
+  m_LayerOverridePriority: 10
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.1
+  m_Radius: 1
   m_Height: 0
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6944882898462788646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1354635090213394351}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab4d1b2a63e43a242ace813fb29b848a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxLiftTime: 2
+  Mask:
+    serializedVersion: 2
+    m_Bits: 1971
+  ImpactParticleSystem: {fileID: 7139783477018842845, guid: 6d838becd49d75b4aad0370e4ec5d5b5,
+    type: 3}
+  GunRoot: {fileID: 8888236383033624858}
+--- !u!54 &17810524872265429
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1354635090213394351}
+  serializedVersion: 4
+  m_Mass: 0.0000001
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 1
+  m_Constraints: 0
+  m_CollisionDetection: 1
 --- !u!114 &-6795098934092726249
 MonoBehaviour:
   m_ObjectHideFlags: 0
