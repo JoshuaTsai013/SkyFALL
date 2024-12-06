@@ -128,6 +128,8 @@ public class ThirdPersonController : MonoBehaviour
     private GameObject _mainCamera;
     private ThirdPersonShooterController _thirdPersonShooterController;
 
+    private Heat heat;
+
     private const float _threshold = 0.01f;
     private bool IsCurrentDeviceMouse
     {
@@ -157,6 +159,8 @@ public class ThirdPersonController : MonoBehaviour
         _thirdPersonShooterController = GetComponent<ThirdPersonShooterController>();
 
 
+
+        heat = PlayerManager.instance.player.GetComponent<Heat>();
         _rotationSmoothTime = RotationSmoothTimeOnGround;
         // reset our timeouts on start
         // _jumpDelayTimeoutDelta = JumpDelayTimeout;
@@ -168,9 +172,8 @@ public class ThirdPersonController : MonoBehaviour
 
     private void Update()
     {
-        Dash();
-        Move();
 
+        Move();
     }
 
     private void FixedUpdate()
@@ -178,6 +181,7 @@ public class ThirdPersonController : MonoBehaviour
         GroundedCheck();
         FreefallAndGravity();
         CheckDirection();
+        Dash();
         Jump();
     }
 
@@ -198,7 +202,7 @@ public class ThirdPersonController : MonoBehaviour
             //reset the Rotation speed on ground
             _rotationSmoothTime = RotationSmoothTimeOnGround;
 
-            
+
 
 
             // stop our velocity dropping infinitely when grounded
@@ -357,11 +361,12 @@ public class ThirdPersonController : MonoBehaviour
         {
             isDash = true;
             _animator.SetBool("Dash", true);
-            PlayerManager.instance.player.GetComponent<Heat>().AddDashHeat();
+            heat.AddDashHeat();
             JumpEffect3.Play();
             JumpEffect4.Play();
 
-            CanJump = false;
+            // CanJump = false; 
+            // Disable jumping while dashing
 
             //check angle between player input and character facing
             Vector3 vectorinputXZ = new(_inputDirectionLastTime.x, 0, _inputDirectionLastTime.z);
@@ -387,7 +392,8 @@ public class ThirdPersonController : MonoBehaviour
         //Timeout Dash
         if (isDash)
         {
-            CanJump = false;
+            // CanJump = false; 
+            // Ensure jumping is disabled while dashing
             _input.jump = false;
             _DashDurationDelta -= Time.deltaTime;
             if (_DashDurationDelta <= 0.0f)
@@ -399,11 +405,10 @@ public class ThirdPersonController : MonoBehaviour
                 _animator.SetBool("Dash", false);
                 JumpEffect3.Stop();
                 JumpEffect4.Stop();
+
+                // CanJump = true;
+                 // Re-enable jumping after dashing
             }
-        }
-        else
-        {
-            CanJump = true;
         }
 
         if (_DashTimeoutDelta >= 0.0f)
@@ -415,36 +420,51 @@ public class ThirdPersonController : MonoBehaviour
     #region Jump
     private void Jump()
     {
+        // Debug.Log("_jumpTimeoutDelta: " + _jumpTimeoutDelta);
+        // jump timeout
+        if (_jumpTimeoutDelta >= 0.0f)
+        {
+            _jumpTimeoutDelta -= Time.deltaTime;
+        }
+        else
+        {
+            _jumpTimeoutDelta = 0.0f;
+        }
+
         if (Grounded)
         {
+            if (_jumpTimeoutDelta <= 0.0f)
+            {
+                CanJump = true;
+                isJump = false;
+            }
+            if (isDash)
+            {
+                CanJump = false;
+            }
             // update animator
             _animator.SetBool("Jump", false);
 
             // Jump
-            if (CanJump && _input.jump && (_jumpTimeoutDelta <= 0.0f))
+            if (CanJump && _input.jump)
             {
-
                 _animator.SetBool("Jump", true);
-                PlayerManager.instance.player.GetComponent<Heat>().AddJumpHeat();
-                _input.jump = false;
+                heat.AddJumpHeat();
+                CanJump = false; // Disable jumping again until conditions are met
+                _jumpTimeoutDelta = JumpTimeout; // start Timeout Jump state
+                isJump = true;
                 Invoke("JumpInvoke", JumpDelayTimeout);
             }
-
-            // jump timeout
-            if (_jumpTimeoutDelta >= 0.0f)
-            {
-                _jumpTimeoutDelta -= Time.deltaTime;
-                // _input.jump = false;
-            }
         }
-
+        else
+        {
+            CanJump = false;
+        }
     }
 
     private void JumpInvoke()
     {
         _verticalVelocity = 20f;
-        _input.jump = false;
-        _jumpTimeoutDelta = JumpTimeout;
     }
     #endregion
     #region Freefall And Gravity

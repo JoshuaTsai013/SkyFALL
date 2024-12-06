@@ -72,6 +72,9 @@ public class PlayerInputs : MonoBehaviour
         {
             jump = true;
         }
+        else{
+            jump = false;
+        }
 
         //print("Jumpppp"+jump);
     }
