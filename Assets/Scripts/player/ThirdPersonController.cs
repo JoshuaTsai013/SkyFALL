@@ -12,12 +12,14 @@ public class ThirdPersonController : MonoBehaviour
     [Header("Player")]
     [Space(5)]
 
-    [Tooltip("Move speed of the character in m/s")]
+    [Tooltip("Current move speed of the character in m/s")]
     public float MoveSpeed = 2.0f;
     [Tooltip("Move speed of the character in m/s")]
     public float MoveSpeedOnGround = 7.0f;
-    [Tooltip("Move speed of the character in m/s")]
+    [Tooltip("Move speed of the character on air in m/s")]
     public float MoveSpeedOnAir = 4.0f;
+     [Tooltip("Move speed of the character on air in m/s")]
+    public float MoveSpeedOnOverHeat = 4.0f;
     [Tooltip("How fast the character turns to face movement direction on ground")]
     public float RotationSmoothTimeOnGround = 0.15f;
     [Tooltip("How fast the character turns to face movement direction on Air")]
@@ -40,7 +42,9 @@ public class ThirdPersonController : MonoBehaviour
     [Tooltip("Time required to pass before being able to Dash again. Set to 0f to instantly Dash again")]
     public float DashTimeout = 0.4f;
     [Tooltip("How long a Dash Performed")]
-    public float DashDuration = 0.2f;
+    public float DashDuration = 0.6f;
+    [Tooltip("How long a Dash Performed when Overheated")]
+    public float OverheatDashDuration = 0.5f;
 
     [Header("Jump")]
     [Space(5)]
@@ -172,13 +176,12 @@ public class ThirdPersonController : MonoBehaviour
 
     private void Update()
     {
-
         Move();
     }
 
     private void FixedUpdate()
     {
-        GroundedCheck();
+        GroundedAndSpeedCheck();
         FreefallAndGravity();
         CheckDirection();
         Dash();
@@ -190,7 +193,7 @@ public class ThirdPersonController : MonoBehaviour
         CameraRotation();
     }
 
-    private void GroundedCheck()
+    private void GroundedAndSpeedCheck()
     {
         // set sphere position, with offset
         Vector3 spherePosition = new(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
@@ -216,6 +219,11 @@ public class ThirdPersonController : MonoBehaviour
             MoveSpeed = MoveSpeedOnAir;
             //set the Rotation speed on Air
             _rotationSmoothTime = RotationSmoothTimeOnAir;
+        }
+
+        if (heat.Overheated)
+        {
+            MoveSpeed = MoveSpeedOnOverHeat;
         }
         _animator.SetBool("Grounded", Grounded); // update animator if using character
 
@@ -290,7 +298,6 @@ public class ThirdPersonController : MonoBehaviour
         else if (isDash == true)    //Dash Movement
         {
             targetSpeed = DashSpeed;
-
             // accelerate or decelerate to target speed
             if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
             {
@@ -398,8 +405,15 @@ public class ThirdPersonController : MonoBehaviour
             _DashDurationDelta -= Time.deltaTime;
             if (_DashDurationDelta <= 0.0f)
             {
+                if (heat.Overheated)
+                {
+                    _DashDurationDelta = OverheatDashDuration;
+                }
+                else
+                {
+                                    _DashDurationDelta = DashDuration;
 
-                _DashDurationDelta = DashDuration;
+                }
                 _input.Dash = false;
                 isDash = false;
                 _animator.SetBool("Dash", false);
@@ -430,7 +444,10 @@ public class ThirdPersonController : MonoBehaviour
         {
             _jumpTimeoutDelta = 0.0f;
         }
-
+        if (heat.Overheated)
+        {
+            return;
+        }
         if (Grounded)
         {
             if (_jumpTimeoutDelta <= 0.0f)
@@ -443,12 +460,13 @@ public class ThirdPersonController : MonoBehaviour
                 CanJump = false;
             }
             // update animator
-            _animator.SetBool("Jump", false);
+            // _animator.SetBool("Jump", false);
 
             // Jump
             if (CanJump && _input.jump)
             {
-                _animator.SetBool("Jump", true);
+                // _animator.SetBool("Jump", true);
+                _animator.SetTrigger("Jump");
                 heat.AddJumpHeat();
                 CanJump = false; // Disable jumping again until conditions are met
                 _jumpTimeoutDelta = JumpTimeout; // start Timeout Jump state
@@ -465,6 +483,7 @@ public class ThirdPersonController : MonoBehaviour
     private void JumpInvoke()
     {
         _verticalVelocity = 20f;
+        // _animator.SetBool("Jump", true);
     }
     #endregion
     #region Freefall And Gravity

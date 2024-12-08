@@ -367,7 +367,7 @@ MonoBehaviour:
     m_Value: 100
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 100
+    m_Value: 200
   enableVolumetricFog:
     m_OverrideState: 0
     m_Value: 1
@@ -475,7 +475,7 @@ MonoBehaviour:
   active: 0
   postExposure:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: -1.95
   contrast:
     m_OverrideState: 0
     m_Value: 0
