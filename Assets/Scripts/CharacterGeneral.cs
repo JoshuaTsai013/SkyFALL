@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.VFX;
 
 public class CharacterGeneral : MonoBehaviour
 {
@@ -16,7 +17,8 @@ public class CharacterGeneral : MonoBehaviour
     public UnityEvent OnDie;
     [Range(-10.0f, 20.0f)] public float boomHeight = 1.0f;
 
-    public ParticleSystem DieParticleSystem;
+    // public ParticleSystem DieParticleSystem;
+    public VisualEffect DieExplosion;
 
     private void Start()
     {
@@ -30,18 +32,23 @@ public class CharacterGeneral : MonoBehaviour
         if (currentHealth <= 0)
         {
             Die();
-            // Debug.Log("Character died");
-            if (DieParticleSystem != null)
+            
+            // if (DieParticleSystem != null)
+            // {
+            //     Vector3 boomPos = transform.position + new Vector3(0, boomHeight, 0);
+            //     Instantiate(DieParticleSystem, boomPos, transform.rotation);
+            // }
+          if (DieExplosion != null)
             {
                 Vector3 boomPos = transform.position + new Vector3(0, boomHeight, 0);
-                Instantiate(DieParticleSystem, boomPos, transform.rotation);
+                Instantiate(DieExplosion , boomPos, transform.rotation);
             }
             currentHealth = maxHealth;
         }
     }
     private void Die()
     {
-        // Die logic Debug.Log("Character has died."); 
+        // Debug.Log("Character died");
         // Broadcast the Die event 
         OnDie?.Invoke();
     }

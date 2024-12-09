@@ -12,6 +12,8 @@ public class Heat : MonoBehaviour
     public bool Overheated = false;
 
     public float ColdDownRate = 0.1f;
+
+    public float CanColdDownTime = 1.0f;
     public float OverheatColdDownRate = 0.1f;
 
     private ThirdPersonShooterController _shooterController;
@@ -50,7 +52,7 @@ public class Heat : MonoBehaviour
             
             Overheated = true; //will be used to disable dash and jump in ThirdPersonUserControl script
             _canColdDown = false;
-            Invoke("CanColdDownAfterOverheat", 2.0f);
+            Invoke("CanColdDownAfterOverheat", CanColdDownTime);
             // _shooterController.enabled = false;
         }
 

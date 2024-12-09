@@ -9,6 +9,7 @@ public class MinionDestruct : MonoBehaviour
     public float explosionForce = 1000f;
     public float explosionRadius = 50f;
     public Vector3 explosionPositionOffset;
+    private Rigidbody rb;
 
     private void Start()
     {
@@ -20,6 +21,7 @@ public class MinionDestruct : MonoBehaviour
         {
             characterGeneral.OnDie.AddListener(HandleDie);
         }
+        rb = GetComponent<Rigidbody>();
     }
 
     private void HandleDie()
@@ -30,15 +32,21 @@ public class MinionDestruct : MonoBehaviour
     }
     public void MinionDie()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit raycastHit, 999f))
-        {
-            if (raycastHit.collider.gameObject.TryGetComponent<Rigidbody>(out Rigidbody rigidbody))
-            {
-                Vector3 explosionPosition = raycastHit.point + explosionPositionOffset;
-                rigidbody.AddExplosionForce(explosionForce, explosionPosition, explosionRadius);
-            }
-        }
+        // Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        // if (Physics.Raycast(ray, out RaycastHit raycastHit, 999f))
+        // {
+        //     if (raycastHit.collider.gameObject.TryGetComponent<Rigidbody>(out Rigidbody rigidbody))
+        //     {
+        //         Vector3 explosionPosition = raycastHit.point + explosionPositionOffset;
+        //         rigidbody.AddExplosionForce(explosionForce, explosionPosition, explosionRadius);
+        //     }
+        // }
+
+
+        Vector3 explosionPosition = transform.position.normalized;
+        rb.AddExplosionForce(explosionForce, explosionPosition, explosionRadius);
+
+
 
         Instantiate(destroyedMinion, transform.position, transform.rotation);
         gameObject.SetActive(false);

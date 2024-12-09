@@ -7169,7 +7169,7 @@ Transform:
   m_GameObject: {fileID: 4807840765567497274}
   serializedVersion: 2
   m_LocalRotation: {x: 0.4430225, y: -0.55123574, z: -0.4455543, w: 0.54895514}
-  m_LocalPosition: {x: -0.012355821, y: -0.00038949767, z: -0.00021016666}
+  m_LocalPosition: {x: -0.007, y: -0, z: -0}
   m_LocalScale: {x: 0.10000001, y: 0.1, z: 0.100000024}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7198,7 +7198,10 @@ VisualEffect:
     m_Vector3f:
       m_Array: []
     m_Vector4f:
-      m_Array: []
+      m_Array:
+      - m_Value: {x: 80.31373, y: 32.580147, z: 9.731732, w: 1}
+        m_Name: New Color
+        m_Overridden: 1
     m_Uint:
       m_Array: []
     m_Int:
@@ -14699,7 +14702,7 @@ CharacterController:
   m_Height: 1.6
   m_Radius: 0.6
   m_SlopeLimit: 45
-  m_StepOffset: 2
+  m_StepOffset: 1
   m_SkinWidth: 0.001
   m_MinMoveDistance: 0
   m_Center: {x: 0, y: 0.86, z: -0.02}
@@ -14718,6 +14721,7 @@ MonoBehaviour:
   MoveSpeed: 2
   MoveSpeedOnGround: 10
   MoveSpeedOnAir: 20
+  MoveSpeedOnOverHeat: 2
   RotationSmoothTimeOnGround: 0.3
   RotationSmoothTimeOnAir: 1
   RotationSmoothTimeOnAim: 0.1
@@ -14727,6 +14731,7 @@ MonoBehaviour:
   DashSpeed: 40
   DashTimeout: 1
   DashDuration: 0.6
+  OverheatDashDuration: 0.1
   CanJump: 1
   isJump: 0
   JumpEffect1: {fileID: 7812296105044050488}
@@ -14736,7 +14741,7 @@ MonoBehaviour:
   Gravity: -27.94
   JumpHeight: 20
   JumpDelayTimeout: 0.2
-  JumpTimeout: 0.4
+  JumpTimeout: 1
   FallTimeout: 0.15
   Grounded: 1
   GroundedOffset: 0
@@ -14967,7 +14972,9 @@ MonoBehaviour:
   currentHealth: 100
   maxHeat: 100
   currentHeat: 100
-  SelfDestroy: {fileID: 0}
+  OnDie:
+    m_PersistentCalls:
+      m_Calls: []
   boomHeight: 3
   DieParticleSystem: {fileID: 2304969192440461609, guid: e6ef0687cccd0064da3a9aa5b724d67d,
     type: 3}
@@ -14988,6 +14995,9 @@ MonoBehaviour:
   maxHeat: 100
   currentHeat: 0
   HeatPercentage: 0
+  Overheated: 0
+  ColdDownRate: 10
+  OverheatColdDownRate: 30
 --- !u!1 &6845746740376047852
 GameObject:
   m_ObjectHideFlags: 0
