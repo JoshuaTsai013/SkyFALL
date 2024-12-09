@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.VFX;
+using Cinemachine;
 
 public class Gun : MonoBehaviour
 {
@@ -18,7 +19,7 @@ public class Gun : MonoBehaviour
     private ParticleSystem ImpactParticleSystem;
     [SerializeField]
     private TrailRenderer BulletTrail;
-     [SerializeField]
+    [SerializeField]
     private PlayerInputs _Inputs;
     [SerializeField]
     private float ShootDelay = 0.1f;
@@ -35,12 +36,22 @@ public class Gun : MonoBehaviour
 
     private Vector3 _BulletDirection;
 
+    private SoundManager SoundManager;
+    private CinemachineImpulseSource _impulseSource;
+
+
+    private void Start()
+    {
+        _impulseSource = PlayerManager.instance.PlayerCamera.GetComponent<CinemachineImpulseSource>();
+    }
+
     public void Shoot()
     {
         if (LastShootTime + ShootDelay < Time.time)
         {
             ShootingSystem.Play();
-
+            SoundManager.PlaySound(SoundType.SingleShot, 0.1f);
+            _impulseSource.GenerateImpulse();
             _BulletDirection = NoAimTransform.forward;
             if (_Inputs.aim)
             {

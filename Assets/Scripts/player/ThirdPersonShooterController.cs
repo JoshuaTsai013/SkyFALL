@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Cinemachine;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -14,6 +15,7 @@ public class ThirdPersonShooterController : MonoBehaviour
     public bool isAiming;
 
     private PlayerInputs Inputs;
+    
     [SerializeField]
     private Gun _gun;
 
@@ -22,6 +24,7 @@ public class ThirdPersonShooterController : MonoBehaviour
     private void Start()
     {
         Inputs = GetComponent<PlayerInputs>();
+        
     }
     private void Update()
     {

@@ -87,7 +87,7 @@ TrailRenderer:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0
+        time: 0.01828672
         value: 0
         inSlope: 0.0007971946
         outSlope: 0.0007971946
@@ -96,16 +96,16 @@ TrailRenderer:
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 0.3382565
-        value: 0.21420264
-        inSlope: -0.31174114
-        outSlope: -0.31174114
+        time: 0.1411293
+        value: 0.15689963
+        inSlope: 0.03996742
+        outSlope: 0.03996742
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 0.77999365
+        time: 0.56283057
         value: 0
         inSlope: -0.15394531
         outSlope: -0.15394531
@@ -171,7 +171,7 @@ CapsuleCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1024
   m_LayerOverridePriority: 10
   m_IsTrigger: 1
   m_ProvidesContacts: 0
@@ -208,7 +208,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1354635090213394351}
   serializedVersion: 4
-  m_Mass: 0.0000001
+  m_Mass: 1
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}

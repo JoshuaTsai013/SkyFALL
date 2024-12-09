@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
 using UnityEngine.VFX;
+using UnityEngine.Audio;
 
 public class MinionGun : MonoBehaviour
 {
@@ -20,6 +21,8 @@ public class MinionGun : MonoBehaviour
     [SerializeField]
     private float LastShootTime;
 
+    public AudioSource shootSound;
+
 
 
     void Start()
@@ -29,6 +32,7 @@ public class MinionGun : MonoBehaviour
     private void Update()
     {
         Shoot();
+        
     }
     public void Shoot()
     {
@@ -38,6 +42,7 @@ public class MinionGun : MonoBehaviour
             TrailRenderer trail = Instantiate(BulletTrail, GunRoot.position, Quaternion.identity);
             StartCoroutine(SpawnTrail(trail, direction));
             ShootingSystem.Play();
+            AudioSource.PlayClipAtPoint(shootSound.clip, transform.position);
             // trail.GetComponent<Rigidbody>().velocity = direction * Speed;
             // trail.GetComponent<Attacker>().damage = Damage;
             // trail.GetComponent<MinionBullet>().GunRoot = GunRoot;
@@ -47,9 +52,18 @@ public class MinionGun : MonoBehaviour
     }
     private IEnumerator SpawnTrail(TrailRenderer Trail, Vector3 _direction)
     {
-        Trail.GetComponent<Rigidbody>().velocity = _direction * Speed;
-        Trail.GetComponent<Attacker>().damage = Damage;
-        Trail.GetComponent<MinionBullet>().GunRoot = GunRoot;
+        if (Trail.TryGetComponent<Rigidbody>(out Rigidbody rb))
+        {
+            rb.velocity = _direction * Speed;
+        }
+        if (Trail.TryGetComponent<Attacker>(out Attacker attacker))
+        {
+            attacker.damage = Damage;
+        }
+        if (Trail.TryGetComponent<MinionBullet>(out MinionBullet minionBullet))
+        {
+            minionBullet.GunRoot = GunRoot;
+        }
         yield return null;
 
     }
